@@ -47,7 +47,10 @@ public class javaFX extends Application {
 
     private void establishConnection() {
         try {
-            socket = IO.socket("http://serveradresse:port");
+            //Testweise Socket IO Chat Server
+            //socket = IO.socket("https://socketio-chat-h9jt.herokuapp.com/");
+            //Unser Server
+            socket = IO.socket("3.71.101.250:3000");
     
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
