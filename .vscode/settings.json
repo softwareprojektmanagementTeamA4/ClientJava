@@ -13,6 +13,11 @@
         "socketio/json-20090211.jar",
         "socketio/okhttp-3.12.12.jar",
         "socketio/okio-1.15.0.jar",
-        "socketio/socket.io-client-1.0.2.jar"
+        "socketio/socket.io-client-1.0.2.jar",
+        "socketio2.1/engine.io-client-2.1.0.jar",
+        "socketio2.1/json-20090211.jar",
+        "socketio2.1/okhttp-3.12.12.jar",
+        "socketio2.1/okio-1.15.0.jar",
+        "socketio2.1/socket.io-client-2.1.0.jar"
     ]
 }
