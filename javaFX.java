@@ -66,7 +66,7 @@ public class javaFX extends Application {
         connectbtn.setText("Verbindung herstellen");
         connectbtn.setOnAction(event -> {
             username = usernameField.getText();
-            establishConnection(primaryStage, gameScene);
+            establishConnection(primaryStage);
         });
 
         connectBox = new VBox(10); // Abstand
@@ -123,7 +123,7 @@ public class javaFX extends Application {
     }
     
 
-    private void establishConnection(Stage primaryStage, Scene gameScene) {
+    private void establishConnection(Stage primaryStage) {
         try {
             // Erstellen der Optionen
             IO.Options options = IO.Options.builder()
@@ -137,7 +137,7 @@ public class javaFX extends Application {
                 public void call(Object... args) {
                     Platform.runLater(() -> {
                         ausgabeGUI.setText("Verbunden mit dem Server");
-                        switchGameScene(primaryStage);
+                        switchScene(primaryStage, gameScene);
                     });
                 }
             });
@@ -193,9 +193,9 @@ public class javaFX extends Application {
         }
     }
 
-    private void switchGameScene(Stage stage) {
+    private void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
-            stage.setScene(gameScene);
+            stage.setScene(scene);
             stage.show();
         });
     }
