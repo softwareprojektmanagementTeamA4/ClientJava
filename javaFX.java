@@ -2,6 +2,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,72 +10,152 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import io.socket.client.SocketOptionBuilder;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class javaFX extends Application {
     private Socket socket;
     private Label ausgabeGUI;
-    final int width = 1280;
-    final int height = 960;
-    String username;
+    private Label connectedUsersLabel;
+    private TextField usernameField;
+    private final int width = 1280;
+    private final int height = 960;
+    private String username;
+    private Button btnStart;
+    private Button btnSettings;
+    private Button btnQuit;
+    private Scene gameScene;
+    private Scene connectScene;
+    private VBox connectBox;
+    private Button connectbtn;
+    private VBox buttonGameBox;
+    private VBox playersConnectedBox;
+
     @Override
     public void start(Stage primaryStage) {
-        ausgabeGUI = new Label();
-        ausgabeGUI.setText("Verbinden sie sich mit dem Server!");
-        Button btn = new Button();
-        btn.setText("Hier Drücken!");
+        creatingConnectSzene(primaryStage);
+        creatingGameSzene(primaryStage);
 
-        // Event-Handler für den Button
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                establishConnection();
-            }
-        });
-
-        VBox root = new VBox();
-        root.getChildren().add(btn);
-        root.getChildren().add(ausgabeGUI);
-
-        Scene scene = new Scene(root, 300, 250);
-
-        primaryStage.setTitle("Socket.IO Verbindung");
-        primaryStage.setScene(scene);
-    
+        primaryStage.setTitle("Mulitplayer Game Racing");
+        primaryStage.setScene(connectScene);
         primaryStage.show();
+
     }
 
-    private void establishConnection() {
-        try {
-            //Testweise Socket IO Chat Server
-            //socket = IO.socket("https://socketio-chat-h9jt.herokuapp.com/");
-            //Unser Server
-            String username = "IhrBenutzername";
-            IO.Options options = new IO.Options();  
-            options = IO.Options.builder().setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username))).build();
+    private void creatingConnectSzene(Stage primaryStage) {
+        ausgabeGUI = new Label();
+        ausgabeGUI.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
+        ausgabeGUI.setText("Verbinden Sie sich mit dem Server!");
+        
 
-            socket = IO.socket("http://3.71.101.250:3000/",options);
+        usernameField = new TextField();
+        usernameField.setPromptText("Benutzername eingeben");
+        usernameField.setMaxWidth(200);
+        usernameField.setPrefColumnCount(10);
+
+        connectbtn = new Button();
+        connectbtn.setText("Verbindung herstellen");
+        connectbtn.setOnAction(event -> {
+            username = usernameField.getText();
+            establishConnection(primaryStage, gameScene);
+        });
+
+        connectBox = new VBox(10); // Abstand
+        connectBox.setAlignment(Pos.CENTER); // Zentrieren
+        connectBox.getChildren().add(usernameField); 
+        connectBox.getChildren().add(connectbtn); 
+        connectBox.getChildren().add(ausgabeGUI);
+
+        connectScene = new Scene(connectBox, width, height);
+        connectScene.getRoot().setStyle("-fx-background-color: blue;");
+
+    }
+
+    private void creatingGameSzene(Stage primaryStage) {
+        connectedUsersLabel = new Label();
+        connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
+        
+        btnStart = new Button();
+        btnStart.setText("Start");
+        
+        btnSettings = new Button();
+        btnSettings.setText("Settings");
+        
+        btnQuit = new Button();
+        btnQuit.setText("Quit");
+
+        btnQuit.setOnAction(event -> {
+            Stage stage = (Stage) btnQuit.getScene().getWindow();
+            stage.close();
+        });
+
+        btnStart.setPrefWidth(200); 
+        btnSettings.setPrefWidth(200); 
+        btnQuit.setPrefWidth(200); 
+
+        btnStart.setPrefHeight(40); 
+        btnSettings.setPrefHeight(40); 
+        btnQuit.setPrefHeight(40); 
+        
+        buttonGameBox = new VBox(10); // Abstand
+        playersConnectedBox = new VBox(10);
+        buttonGameBox.setAlignment(Pos.CENTER); // Zentrieren der Buttons
+        playersConnectedBox.setAlignment(Pos.TOP_LEFT);
+        playersConnectedBox.getChildren().add(connectedUsersLabel);
+        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); // Buttons in der Mitte hinzufügen
+        
+        StackPane root = new StackPane();
+        root.getChildren().addAll(playersConnectedBox, buttonGameBox);
+        
+        gameScene = new Scene(root, width, height);
+        gameScene.getRoot().setStyle("-fx-background-color: blue;");
+
+    
+    }
+    
+
+    private void establishConnection(Stage primaryStage, Scene gameScene) {
+        try {
+            // Erstellen der Optionen
+            IO.Options options = IO.Options.builder()
+                    .setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username)))
+                    .build();
+
+            socket = IO.socket("http://3.71.101.250:3000/", options);
 
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
-                    Platform.runLater(() -> ausgabeGUI.setText("Verbunden mit dem Server"));
+                    Platform.runLater(() -> {
+                        ausgabeGUI.setText("Verbunden mit dem Server");
+                        switchGameScene(primaryStage);
+                    });
                 }
             });
-    
+
             socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     Platform.runLater(() -> ausgabeGUI.setText("Verbindungsfehler: " + args[0]));
                 }
             });
-    
+
+            socket.on("playersConnected", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> onPlayersConnected(args));
+                }
+            });
+
             socket.connect();
         } catch (URISyntaxException e) {
             // Fehler beim Parsen der URI
@@ -86,6 +167,39 @@ public class javaFX extends Application {
             Platform.runLater(() -> ausgabeGUI.setText("Verbindungsfehler: " + e.getMessage()));
         }
     }
+
+    private void onPlayersConnected(Object... args) {
+        if (args.length > 0 && args[0] instanceof JSONObject) {
+            JSONObject jsonObject = (JSONObject) args[0];
+            if (jsonObject.has("usernames")) {
+                try {
+                    JSONArray usernamesArray = jsonObject.getJSONArray("usernames");
+                    
+                    StringBuilder usersStringBuilder = new StringBuilder();
+                    for (int i = 0; i < usernamesArray.length(); i++) {
+                        String username = usernamesArray.getString(i);
+                        usersStringBuilder.append(username).append(" Online").append("\n");
+                    }
+                    
+                    Platform.runLater(() -> {
+                        connectedUsersLabel.setText(usersStringBuilder.toString());
+                        connectedUsersLabel.setVisible(true);
+                        connectedUsersLabel.getParent().requestLayout(); // Fordert ein erneutes Layout an
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void switchGameScene(Stage stage) {
+        Platform.runLater(() -> {
+            stage.setScene(gameScene);
+            stage.show();
+        });
+    }
+    
 
     public static void main(String[] args) {
         launch(args);
