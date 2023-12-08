@@ -1,15 +1,22 @@
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sound.sampled.Line;
+import javafx.scene.Group;
+
 import javafx.animation.AnimationTimer;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import java.util.ArrayList;
-import java.util.List;
-import javax.sound.sampled.Line;
-import javax.swing.GroupLayout.Group;
-import javafx.scene.Scene;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 
 public class FormulaGame {
     private final int WINDOW_WIDTH = 1280;
@@ -79,7 +86,7 @@ public class FormulaGame {
     private void createRoadLines() {
         lines = new ArrayList<>();
         for (int i = 0; i < 1600; i++) {
-            Line line = new Line(i);
+            CustomLine line = new CustomLine(i);
             line.z = i * segL + 0.00001;
 
             Color grassColor = ((i / 3) % 2 == 0) ? light_grass : dark_grass;
