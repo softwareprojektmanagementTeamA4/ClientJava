@@ -56,7 +56,6 @@ public class App extends Application {
         primaryStage.setTitle("Mulitplayer Game Racing");
         primaryStage.setScene(connectScene);
         primaryStage.show();
-
     }
 
     private void creatingConnectSzene(Stage primaryStage) {
@@ -95,8 +94,7 @@ public class App extends Application {
         btnStart.setText("Start");
 
         btnStart.setOnAction(event -> {
-            //FormulaGame formulaGame = new FormulaGame();
-            //formulaGame.start(primaryStage);
+            
         });
         
         btnSettings = new Button();
