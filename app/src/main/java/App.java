@@ -56,10 +56,6 @@ public class App extends Application {
         primaryStage.setTitle("Mulitplayer Game Racing");
         primaryStage.setScene(connectScene);
         primaryStage.show();
-        
-        FormulaGame formulaGame = new FormulaGame();
-        formulaGame.start(primaryStage); // Starte die FormulaGame-Klasse
-        switchScene(primaryStage, formulaGame.getScene()); // Wechsle zur Szene der FormulaGame-Klasse
 
     }
 
