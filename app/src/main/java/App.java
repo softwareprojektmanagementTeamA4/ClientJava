@@ -57,6 +57,8 @@ public class App extends Application {
         primaryStage.setScene(connectScene);
         primaryStage.show();
 
+        Road road = new Road();
+        road.start(primaryStage);
     }
 
     private void creatingConnectSzene(Stage primaryStage) {
