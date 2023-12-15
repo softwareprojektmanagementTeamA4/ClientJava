@@ -6,7 +6,7 @@ class Point3D_2 {
     private Point2D_2 screen;
 
     public Point3D_2(double x, double y, double z) {
-        this.camera = new Point3D_3(x,y,z);
+        this.camera = new Point3D_3(0,0,0);
         this.world = new Point3D_3(x,y,z);
         this.screen = new Point2D_2(0,0,0,0);
     }

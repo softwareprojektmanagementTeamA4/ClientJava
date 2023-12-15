@@ -25,8 +25,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import images.Background;
-
 import java.util.*;
 
 
@@ -73,11 +71,13 @@ public class Road extends Application{
     GraphicsContext ctx;
 
     private Canvas canvas;
+    
     private Image background;
     private Image sprites;
 
     Util util = new Util();
     ImageLoader imageloader = new ImageLoader();
+    Render render = new Render();
 
     StackPane root = new StackPane();
     Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -93,6 +93,7 @@ public class Road extends Application{
 
         canvas = new Canvas(WIDTH, HEIGHT);
         ctx = canvas.getGraphicsContext2D();
+
 
         StackPane root = new StackPane();
         root.getChildren().add(canvas);
@@ -146,7 +147,12 @@ public class Road extends Application{
         });
 
         reset();
-        imageloader.loadImagesFromFolder("src/main/images");
+        imageloader.loadImagesFromFolder("src/main/java/images/");
+        imageloader.loadImagesFromFolder("src/main/java/images/sprites");
+        imageloader.loadImagesFromFolder("src/main/java/images/background");
+        HashMap<String, Image> loadedImages = imageloader.loadImagesFromFolder("src/main/java/images/");
+        Image background = loadedImages.get("trees");
+        Image sprites = loadedImages.get("sprites");
         gameLoop(ctx);
     }
 
@@ -181,22 +187,21 @@ public class Road extends Application{
     //=========================================================================
     // RENDER THE GAME WORLD
     //=========================================================================
-    private void render(GraphicsContext gtx) {
+    private void render(GraphicsContext ctx) {
 
         Segment baseSegment = findSegment(position);
         double maxy = HEIGHT;
 
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        ctx.setFill(Color.GREEN);
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-        Render render = new Render();
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        //ctx.setFill(Color.GREEN);
+        //ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        
         render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,0); // Was muss Rotation und Offset sein?
         render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,0);
         render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, 0,0);
 
-        int n, i, segmentCount = 0;
-
+        int n;
         for(n = 0; n < DRAW_DISTANCE; n++) {
             Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
             segment.setLooped(segment.getIndex() < baseSegment.getIndex());
@@ -206,10 +211,11 @@ public class Road extends Application{
             util.project(segment.getP1(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
             util.project(segment.getP2(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
 
-
-            if((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) || (segment.getP2().getScreen().getY() >= maxy)){
-                continue;}
             
+            if((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) || (segment.getP2().getScreen().getY() >= maxy)){
+                
+            continue;}
+
             render.segment(
                 ctx,
                 WIDTH, 
@@ -248,10 +254,13 @@ public class Road extends Application{
     private void resetRoad() {
         segments.clear();
         int numSegments = 500; // Anzahl der Segmente
-
+        Point3D_2 p1;
+        Point3D_2 p2;
         for (int n = 0; n < numSegments; n++) {
-            Point3D_2 p1 = new Point3D_2(0, 0, n * SEGMENT_LENGTH);
-            Point3D_2 p2 = new Point3D_2(0, 0, (n + 1) * SEGMENT_LENGTH);
+            int z1 = n * SEGMENT_LENGTH;
+            int z2 = (n + 1) * SEGMENT_LENGTH;
+            p1 = new Point3D_2(0, 0, z1);
+            p2 = new Point3D_2(0, 0, z2);
             int colorIndex = (int) Math.floor(n / RUMBLE_LENGTH) % 2;
             Color color = (colorIndex == 0) ? Segment.SegmentColor.DARK.getColor() : Segment.SegmentColor.LIGHT.getColor();
             segments.add(new Segment(n, p1, p2, color));
@@ -272,7 +281,7 @@ public class Road extends Application{
     //=========================================================================
     // THE GAME LOOP
     //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
-    public void gameLoop(GraphicsContext gtx) {
+    public void gameLoop(GraphicsContext ctx) {
         AnimationTimer timer = new AnimationTimer() {
             long lastTime = System.nanoTime();
             final double ns = 1000000000.0 / FPS;
@@ -286,7 +295,7 @@ public class Road extends Application{
                     update(1); // Hier wird 1 als deltaTime angenommen, Sie können eine passende Delta-Zeit berechnen
                     delta--;
                 }
-                render(gtx);
+                render(ctx);
             }
         };
         timer.start();

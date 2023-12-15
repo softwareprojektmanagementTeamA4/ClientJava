@@ -1,3 +1,8 @@
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.WritableImage;
+
+
 public class Sprite {
         private final double x;
         private final double y;
@@ -25,5 +30,12 @@ public class Sprite {
 
         public double getH() {
             return h;
+        }
+
+        public Image getImage() {
+        Image spriteSheet = new Image("file:src/main/resources/spritesheet.png");
+        PixelReader pixelReader = spriteSheet.getPixelReader();
+        WritableImage croppedImage = new WritableImage(pixelReader, (int) x, (int) y, (int) w, (int) h);
+        return croppedImage;
         }
     }

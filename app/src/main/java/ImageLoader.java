@@ -1,5 +1,8 @@
 import javafx.scene.image.Image;
-
+import javafx.geometry.Point3D;
+import javafx.scene.paint.Color;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import java.io.File;
 import java.util.HashMap;
 
@@ -22,6 +25,7 @@ public class ImageLoader {
                     String nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.'));
                     Image image = new Image("file:" + file.getPath());
                     images.put(nameWithoutExtension, image);
+                    System.out.println(fileName + " wurde geladen.");
                 }
             }
         }

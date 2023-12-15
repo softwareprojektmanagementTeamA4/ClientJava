@@ -2,8 +2,12 @@ import javafx.geometry.Point3D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import java.util.Random;
+import java.lang.Math;
 import java.util.HashMap;
 import java.util.Map;
+import javafx.scene.paint.Color;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 //TODO: project(World, Scale) 
 
 public class Util {
@@ -59,14 +63,13 @@ public class Util {
         double worldX = p.getWorld().getX();
         double worldY = p.getWorld().getY();
         double worldZ = p.getWorld().getZ();
-        
         p.getCamera().setX((!Double.isNaN(worldX) ? worldX : 0) - cameraX);
         p.getCamera().setY((!Double.isNaN(worldY) ? worldY : 0) - cameraY);
         p.getCamera().setZ((!Double.isNaN(worldZ) ? worldZ : 0) - cameraZ); // Gucken ob gleiche Funktionalität
         p.getScreen().setScale(cameraDepth / p.getCamera().getZ());
-        p.getScreen().setX((int) Math.round((width / 2) + (p.getScreen().getScale() * p.getCamera().getX() * width / 2)));
-        p.getScreen().setY((int) Math.round((height / 2) - (p.getScreen().getScale() * p.getCamera().getY() * height / 2)));
-        p.getScreen().setWidth((int) Math.round(p.getScreen().getScale() * roadWidth * width / 2));
+        p.getScreen().setX(Math.round((width / 2) + (p.getScreen().getScale() * p.getCamera().getX() * width / 2)));
+        p.getScreen().setY(Math.round((height / 2) - (p.getScreen().getScale() * p.getCamera().getY() * height / 2)));
+        p.getScreen().setWidth(Math.round(p.getScreen().getScale() * roadWidth * width / 2));
     }
 
     

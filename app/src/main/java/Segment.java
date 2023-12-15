@@ -1,5 +1,6 @@
 import javafx.scene.paint.Color;
 
+
 class Segment {
     private int index;
     private Color color;

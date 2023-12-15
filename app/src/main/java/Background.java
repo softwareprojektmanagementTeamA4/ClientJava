@@ -1,4 +1,4 @@
-package images;
+
 public class Background {
     public static final Background HILLS = new Background(5, 5, 1280, 480);
     public static final Background SKY = new Background(5, 495, 1280, 480);

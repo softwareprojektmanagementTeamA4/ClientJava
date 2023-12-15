@@ -1,4 +1,3 @@
-import images.Background;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color; 
@@ -57,8 +56,9 @@ public class Render {
         double l2 = laneMarkerWidth(w2, lanes);
         double lanew1, lanew2, lanex1, lanex2, lane;
 
-        ctx.setFill(color.darker());
-        ctx.fillRect(0, y2, width, y1 - y2);
+        //ctx.setFill(color.darker());
+        //ctx.fillRect(0, y2, width, y1 - y2);
+
 
         polygon(ctx, x1 - w1 - r1, y1, x1 - w1, y1, x2 - w2, y2, x2 - w2 - r2, y2, color);
         polygon(ctx, x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color);
