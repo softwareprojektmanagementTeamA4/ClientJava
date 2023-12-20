@@ -86,7 +86,7 @@ public class Render {
         return projectedRoadWidth / Math.max(32, 8 * lanes);
     }
 
-    private void polygon(GraphicsContext ctx, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, Color color) {
+    public void polygon(GraphicsContext ctx, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, Color color) {
         ctx.setFill(color);
         ctx.beginPath();
         ctx.moveTo(x1, y1);

@@ -1,4 +1,6 @@
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,6 +18,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -32,27 +35,29 @@ import java.util.*;
 public class Road extends Application{
     private final int SCREEN_WIDTH = 1280;
     private final int SCREEN_HEIGHT = 960;
-    private static long serialVersionUID = 1L;
-    private static int FPS = 60;
-    private static int WIDTH = 1024;
-    private static int HEIGHT = 768;
-    private static int LANES = 3;
-    private static int ROAD_WIDTH = 2000;
-    private static int SEGMENT_LENGTH = 200;
-    private static int RUMBLE_LENGTH = 3;
-    private static int CAMERA_HEIGHT = 1000;
-    private static int DRAW_DISTANCE = 300;
-    private static int FIELD_OF_VIEW = 100;
-    private static int FOG_DENSITY = 5;
-    private static double MAX_SPEED = SEGMENT_LENGTH / (1000 / FPS);
-    private static double ACCEL = MAX_SPEED / 5;
-    private static double BREAKING = -MAX_SPEED;
-    private static double DECEL = -MAX_SPEED / 5;
-    private static double OFF_ROAD_DECEL = -MAX_SPEED / 2;
-    private static double OFF_ROAD_LIMIT = MAX_SPEED / 4;
-    private static int TRACK_LENGTH = 0;
-    private static double CAMERA_DEPTH;
-    private static double resolution; // scaling factor to provide resolution independence (computed)
+    private long serialVersionUID = 1L;
+    private int FPS = 60;
+    private int WIDTH = 1024;
+    private int HEIGHT = 768;
+    private int LANES = 3;
+    private int ROAD_WIDTH = 2000;
+    private int SEGMENT_LENGTH = 200;
+    private int RUMBLE_LENGTH = 3;
+    private int CAMERA_HEIGHT = 1000;
+    private int DRAW_DISTANCE = 300;
+    private int FIELD_OF_VIEW = 100;
+    private int FOG_DENSITY = 5;
+    private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / FPS);
+    private double ACCEL = MAX_SPEED / 5;
+    private double BREAKING = -MAX_SPEED;
+    private double DECEL = -MAX_SPEED / 5;
+    private double OFF_ROAD_DECEL = -MAX_SPEED / 2;
+    private double OFF_ROAD_LIMIT = MAX_SPEED / 4;
+    private int TRACK_LENGTH = 0;
+    private double CAMERA_DEPTH;
+    private double resolution; // scaling factor to provide resolution independence (computed)
+    private double globalDeltaTime = 0;
+    private long lastTime = 0;
 
 
     private boolean keyLeft = false;
@@ -67,13 +72,9 @@ public class Road extends Application{
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private int trackLength;
-
-    GraphicsContext ctx;
-
-    private Canvas canvas;
     
-    private Image background;
-    private Image sprites;
+    private Image background = new Image("file:src/main/java/images/background.png");
+    private Image sprites = new Image("file:src/main/java/images/sprites.png");
 
     Util util = new Util();
     ImageLoader imageloader = new ImageLoader();
@@ -91,8 +92,8 @@ public class Road extends Application{
         primaryStage.setTitle("Javascript Racer - v1 (straight)");
         primaryStage.setResizable(false);
 
-        canvas = new Canvas(WIDTH, HEIGHT);
-        ctx = canvas.getGraphicsContext2D();
+        Canvas canvas = new Canvas(WIDTH, HEIGHT);
+        GraphicsContext ctx = canvas.getGraphicsContext2D();
 
 
         StackPane root = new StackPane();
@@ -101,6 +102,7 @@ public class Road extends Application{
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
         primaryStage.show();
+        
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -120,7 +122,6 @@ public class Road extends Application{
                 case S:
                     keySlower = true;
                     break;
-                // Handle other keys if needed
             }
         });
         
@@ -142,25 +143,23 @@ public class Road extends Application{
                 case S:
                     keySlower = false;
                     break;
-                // Handle other keys if needed
             }
         });
 
-        reset();
-        imageloader.loadImagesFromFolder("src/main/java/images/");
-        imageloader.loadImagesFromFolder("src/main/java/images/sprites");
-        imageloader.loadImagesFromFolder("src/main/java/images/background");
-        HashMap<String, Image> loadedImages = imageloader.loadImagesFromFolder("src/main/java/images/");
-        Image background = loadedImages.get("trees");
-        Image sprites = loadedImages.get("sprites");
-        gameLoop(ctx);
+        //JavaFX Timeline = free form animation defined by KeyFrames and their duration 
+		Timeline tl = new Timeline(new KeyFrame(Duration.millis(10), e -> gameLoop(ctx)));
+		//number of cycles in animation INDEFINITE = repeat indefinitely
+		tl.setCycleCount(Timeline.INDEFINITE);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        tl.play();
     }
 
     //=========================================================================
     // UPDATE THE GAME WORLD
     //=========================================================================
 
-    private void update(int delta_time) {
+    private void update(double delta_time) {
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
         double dx = delta_time * 2 * (speed / MAX_SPEED);
@@ -182,7 +181,6 @@ public class Road extends Application{
         
         playerX = util.limit(playerX, -2, 2);     // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED); // or exceed maxSpeed
-    
     }
     //=========================================================================
     // RENDER THE GAME WORLD
@@ -192,10 +190,9 @@ public class Road extends Application{
         Segment baseSegment = findSegment(position);
         double maxy = HEIGHT;
 
-
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        //ctx.setFill(Color.GREEN);
-        //ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.setFill(Color.GREEN);
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
         render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,0); // Was muss Rotation und Offset sein?
         render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,0);
@@ -211,9 +208,7 @@ public class Road extends Application{
             util.project(segment.getP1(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
             util.project(segment.getP2(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
 
-            
             if((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) || (segment.getP2().getScreen().getY() >= maxy)){
-                
             continue;}
 
             render.segment(
@@ -245,6 +240,8 @@ public class Road extends Application{
                 HEIGHT,
                 speed * (keyLeft ? -1 : keyRight ? 1 : 0),
                 0);
+                
+
     }
    
 
@@ -282,23 +279,11 @@ public class Road extends Application{
     // THE GAME LOOP
     //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
     public void gameLoop(GraphicsContext ctx) {
-        AnimationTimer timer = new AnimationTimer() {
-            long lastTime = System.nanoTime();
-            final double ns = 1000000000.0 / FPS;
-            double delta = 0;
-    
-            @Override
-            public void handle(long now) {
-                delta += (now - lastTime) / ns;
-                lastTime = now;
-                while (delta >= 1) {
-                    update(1); // Hier wird 1 als deltaTime angenommen, Sie können eine passende Delta-Zeit berechnen
-                    delta--;
-                }
-                render(ctx);
-            }
-        };
-        timer.start();
+        reset();
+        while (true) {
+            frame(ctx);
+            render(ctx);
+        }
     }
 
     private void reset() { //Map<String, Object> options
@@ -323,6 +308,24 @@ public class Road extends Application{
     
     Segment findSegment(double z) {
         return segments.get((int) Math.floor(z / SEGMENT_LENGTH) % segments.size());
+    }
+
+    public void frame(GraphicsContext ctx) {
+        long timeNow = System.currentTimeMillis();
+        double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
+        globalDeltaTime += deltaTime;
+
+        double step = 1.0 / 60.0; // Beispielwert für den Zeitschritt
+
+        // while (globalDeltaTime > step) {
+        //     globalDeltaTime -= step;
+        //     update(step);
+        // }
+        update(step);
+
+        render(ctx);
+
+        lastTime = timeNow;
     }
     
 

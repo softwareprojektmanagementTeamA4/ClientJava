@@ -8,7 +8,6 @@ public class Point3D_3{
         this.x = x;
         this.y = y;
         this.z = z;
-
     }
 
     public double getX() {
