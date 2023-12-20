@@ -15,7 +15,7 @@ public class Render {
     //=========================================================================
 
     public void background(GraphicsContext gc, Image background, int width, int height,
-                                  Background background2, int rotation, int offset) {
+                                  Background background2, double rotation, double offset) {
 
         
         rotation = rotation != 0 ? rotation : 0;
@@ -30,7 +30,7 @@ public class Render {
         int sourceH = imageH;
         
         int destX = 0;
-        int destY = offset;
+        double destY = offset;
         int destW = (int) Math.floor(width * (sourceW / (double) imageW));
         int destH = height;
 

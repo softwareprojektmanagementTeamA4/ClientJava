@@ -58,7 +58,17 @@ public class Road extends Application{
     private double resolution; // scaling factor to provide resolution independence (computed)
     private double globalDeltaTime = 0;
     private long lastTime = 0;
+    private double centrifugal_force = 0.3;        // centrifugal force multiplier when going around curves
+    private double skySpeed = 0.001;                  // background sky layer scroll speed when going around curve (or up hill)
+    private double hillSpeed = 0.002;                 // background hill layer scroll speed when going around curve (or up hill)
+    private double treeSpeed = 0.003;                 // background tree layer scroll speed when going around curve (or up hill)
+    private double skyOffset = 0;                       // current sky scroll offset
+    private double hillOffset = 0;                       // current hill scroll offset
+    private double treeOffset = 0;                       // current tree scroll offset
 
+    String path_background_sky = ("background/sky.png");
+    String path_background_hills = ("background/hills.png");
+    String path_background_trees = ("background/trees.png");
 
     private boolean keyLeft = false;
     private boolean keyRight = false;
@@ -170,9 +180,15 @@ public class Road extends Application{
     //=========================================================================
 
     private void update(double delta_time) {
+        Segment playerSegment = findSegment(position + playerZ);
+        int speedPercent = (int) (speed / MAX_SPEED);
+        double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
+
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
-        double dx = delta_time * 2 * (speed / MAX_SPEED);
+        skyOffset  = Util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * speedPercent, 1);
+        hillOffset = Util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * speedPercent, 1);
+        treeOffset = Util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * speedPercent, 1);
 
         if (keyLeft)
             playerX = playerX - dx;
@@ -198,15 +214,19 @@ public class Road extends Application{
     private void render(GraphicsContext ctx) {
 
         Segment baseSegment = findSegment(position);
+        double basePercent = util.percentRemaining(position, SEGMENT_LENGTH);
         double maxy = HEIGHT;
+
+        int x = 0;
+        double dx = - (baseSegment.getCurve() * basePercent);
 
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         //ctx.setFill(Color.GREEN);
         //ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,0); // Was muss Rotation und Offset sein?
-        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,0);
-        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, 0,0);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,skyOffset); // Was muss Rotation und Offset sein?
+        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,hillOffset);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, 0,treeOffset);
 
         int n;
         for(n = 0; n < DRAW_DISTANCE; n++) {

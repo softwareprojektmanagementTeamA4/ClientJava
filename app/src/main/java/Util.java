@@ -12,7 +12,7 @@ import javafx.scene.image.Image;
 
 public class Util {
     private static final Random random = new Random();
-    public double increase(double start, double increment, int max) {
+    public static double increase(double start, double increment, int max) {
         /*
          * Erhöhe den Wert um das Inkrement, überschreite aber nicht das Maximum
          * Laufe um, falls wir das Maximum überschreiten
