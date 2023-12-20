@@ -10,10 +10,13 @@ class Segment {
     private Point3D_2 p2;
     private int clip;
 
+
     public Segment(int index) {
         this.index = index;
     }
 
+    public Segment() {
+    }
 
     public Segment(int index, Color color) {
         this.index = index;
@@ -107,23 +110,6 @@ class Segment {
 
     public void setClip(int clip) {
         this.clip = clip;
-    }
-
-    public enum SegmentColor {
-        DARK(javafx.scene.paint.Color.DARKRED),
-        LIGHT(javafx.scene.paint.Color.LIGHTGREEN),
-        START(javafx.scene.paint.Color.BLUE),
-        FINISH(javafx.scene.paint.Color.YELLOW);
-    
-        private final javafx.scene.paint.Color color;
-    
-        SegmentColor(javafx.scene.paint.Color color) {
-            this.color = color;
-        }
-    
-        public javafx.scene.paint.Color getColor() {
-            return color;
-        }
     }
 }
 

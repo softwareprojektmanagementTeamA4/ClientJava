@@ -78,8 +78,8 @@ public class App extends Application {
             establishConnection(primaryStage);
         });
 
-        connectBox = new VBox(10); // Abstand
-        connectBox.setAlignment(Pos.CENTER); // Zentrieren
+        connectBox = new VBox(10); 
+        connectBox.setAlignment(Pos.CENTER); 
         connectBox.getChildren().add(usernameField); 
         connectBox.getChildren().add(connectbtn); 
         connectBox.getChildren().add(serverStatus);

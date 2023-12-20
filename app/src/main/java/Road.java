@@ -77,15 +77,21 @@ public class Road extends Application{
     private Image sprites = new Image("file:src/main/java/images/sprites.png");
 
     Util util = new Util();
-    ImageLoader imageloader = new ImageLoader();
     Render render = new Render();
 
     StackPane root = new StackPane();
     Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+
+    HashMap<String, Image> images = new HashMap<>();
+    ImageLoader imageLoader = new ImageLoader();
 
     private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
     
+
+    Color dark = Colors.Dark.ROAD;
+    Color light = Colors.Light.ROAD;
+    Color start = Colors.Start.ROAD;
+    Color finish = Colors.Finish.ROAD;
 
     @Override
     public void start(Stage primaryStage) {
@@ -146,8 +152,12 @@ public class Road extends Application{
             }
         });
 
+        // ImageLoader
+        images = imageLoader.loadImagesFromFolder("src/main/java/images/sprites", images);
+        images = imageLoader.loadImagesFromFolder("src/main/java/images", images);
+
         //JavaFX Timeline = free form animation defined by KeyFrames and their duration 
-		Timeline tl = new Timeline(new KeyFrame(Duration.millis(10), e -> gameLoop(ctx)));
+		Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1.0 / FPS), e -> gameLoop(ctx)));
 		//number of cycles in animation INDEFINITE = repeat indefinitely
 		tl.setCycleCount(Timeline.INDEFINITE);
         primaryStage.setScene(scene);
@@ -191,8 +201,8 @@ public class Road extends Application{
         double maxy = HEIGHT;
 
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        ctx.setFill(Color.GREEN);
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        //ctx.setFill(Color.GREEN);
+        //ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
         render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,0); // Was muss Rotation und Offset sein?
         render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,0);
@@ -259,16 +269,16 @@ public class Road extends Application{
             p1 = new Point3D_2(0, 0, z1);
             p2 = new Point3D_2(0, 0, z2);
             int colorIndex = (int) Math.floor(n / RUMBLE_LENGTH) % 2;
-            Color color = (colorIndex == 0) ? Segment.SegmentColor.DARK.getColor() : Segment.SegmentColor.LIGHT.getColor();
+            Color color = (colorIndex == 0) ? dark : light;
             segments.add(new Segment(n, p1, p2, color));
         }
 
         int index = findSegment(playerZ).getIndex();
-        segments.get(index + 2).setColor(Segment.SegmentColor.START.getColor());
-        segments.get(index + 3).setColor(Segment.SegmentColor.START.getColor());
+        segments.get(index + 2).setColor(start);
+        segments.get(index + 3).setColor(start);
 
         for (int n = 0; n < RUMBLE_LENGTH; n++) {
-            segments.get(segments.size() - 1 - n).setColor(Segment.SegmentColor.FINISH.getColor());
+            segments.get(segments.size() - 1 - n).setColor(finish);
         }
 
         TRACK_LENGTH = segments.size() * SEGMENT_LENGTH;
@@ -315,7 +325,7 @@ public class Road extends Application{
         double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
 
-        double step = 1.0 / 60.0; // Beispielwert für den Zeitschritt
+        double step = 1.0 / FPS; 
 
         // while (globalDeltaTime > step) {
         //     globalDeltaTime -= step;
@@ -327,7 +337,4 @@ public class Road extends Application{
 
         lastTime = timeNow;
     }
-    
-
-    
 }

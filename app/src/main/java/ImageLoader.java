@@ -8,9 +8,7 @@ import java.util.HashMap;
 
 public class ImageLoader {
 
-    public HashMap<String, Image> loadImagesFromFolder(String folderPath) {
-        HashMap<String, Image> images = new HashMap<>();
-
+    public HashMap<String, Image> loadImagesFromFolder(String folderPath, HashMap<String, Image> images) {
         File folder = new File(folderPath);
         if (!folder.exists() || !folder.isDirectory()) {
             System.out.println("Der angegebene Pfad ist ungültig oder kein Ordner.");
