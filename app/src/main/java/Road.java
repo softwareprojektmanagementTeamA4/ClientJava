@@ -181,7 +181,7 @@ public class Road extends Application{
 
     private void update(double delta_time) {
         Segment playerSegment = findSegment(position + playerZ);
-        int speedPercent = (int) (speed / MAX_SPEED);
+        double speedPercent = (speed / MAX_SPEED);
         double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
