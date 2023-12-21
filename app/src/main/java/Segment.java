@@ -29,6 +29,14 @@ class Segment {
         this.curve = curve;
     }
 
+    public Segment(int index, Point3D_2 p1, Point3D_2 p2, double curve, Color color) {
+        this.index = index;
+        this.p1 = p1;
+        this.p2 = p2;
+        this.curve = curve;
+        this.color = color;
+    }
+
     public Segment(int index, Point3D_2 p1, Point3D_2 p2, Color color) {
         this.index = index;
         this.p1 = p1;
@@ -76,6 +84,10 @@ class Segment {
 
     public int getIndex() {
         return index;
+    }
+
+    public int setIndex(int index) {
+        return this.index = index;
     }
 
     public Color getColor() {

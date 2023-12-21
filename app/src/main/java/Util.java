@@ -12,14 +12,14 @@ import javafx.scene.image.Image;
 
 public class Util {
     private static final Random random = new Random();
-    public static double increase(double start, double increment, int max) {
+    public static double increase(double start, double increment, double max) {
         /*
          * Erhöhe den Wert um das Inkrement, überschreite aber nicht das Maximum
          * Laufe um, falls wir das Maximum überschreiten
          */
         double result = start + increment;
             
-        while (result > max) {
+        while (result >= max) {
             result -= max;
         }
         while (result < 0) {
@@ -95,5 +95,13 @@ public class Util {
             }
         }
         return def;
+    }
+
+    public double easeIn(double a, double b, double percent) {
+        return (a + (b - a) * Math.pow(percent, 2));
+    }
+    
+    public double easeInOut(double a, double b, double percent) {
+        return (a + (b - a) * (1 - Math.pow(1 - percent, 2)));
     }
 }

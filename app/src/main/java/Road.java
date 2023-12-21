@@ -13,6 +13,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.Light.Point;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -53,7 +54,7 @@ public class Road extends Application{
     private double DECEL = -MAX_SPEED / 5;
     private double OFF_ROAD_DECEL = -MAX_SPEED / 2;
     private double OFF_ROAD_LIMIT = MAX_SPEED / 4;
-    private int TRACK_LENGTH = 0;
+    private double TRACK_LENGTH;
     private double CAMERA_DEPTH;
     private double resolution; // scaling factor to provide resolution independence (computed)
     private double globalDeltaTime = 0;
@@ -64,7 +65,7 @@ public class Road extends Application{
     private double treeSpeed = 0.003;                 // background tree layer scroll speed when going around curve (or up hill)
     private double skyOffset = 0;                       // current sky scroll offset
     private double hillOffset = 0;                       // current hill scroll offset
-    private double treeOffset = 0;                       // current tree scroll offset
+    private double treeOffset = 0;                       // current tree scroll offset    
 
     String path_background_sky = ("background/sky.png");
     String path_background_hills = ("background/hills.png");
@@ -81,7 +82,6 @@ public class Road extends Application{
     private double playerZ = 0;
 
     private ArrayList<Segment> segments = new ArrayList<>();
-    private int trackLength;
     
     private Image background = new Image("file:src/main/java/images/background.png");
     private Image sprites = new Image("file:src/main/java/images/sprites.png");
@@ -97,11 +97,6 @@ public class Road extends Application{
 
     private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
     
-
-    Color dark = Colors.Dark.ROAD;
-    Color light = Colors.Light.ROAD;
-    Color start = Colors.Start.ROAD;
-    Color finish = Colors.Finish.ROAD;
 
     @Override
     public void start(Stage primaryStage) {
@@ -181,19 +176,21 @@ public class Road extends Application{
 
     private void update(double delta_time) {
         Segment playerSegment = findSegment(position + playerZ);
-        double speedPercent = (speed / MAX_SPEED);
+        double speedPercent = speed / MAX_SPEED;
         double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
-        skyOffset  = Util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * speedPercent, 1);
-        hillOffset = Util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * speedPercent, 1);
-        treeOffset = Util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * speedPercent, 1);
+        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * speedPercent, 1);
+        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * speedPercent, 1);
+        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * speedPercent, 1);
 
         if (keyLeft)
             playerX = playerX - dx;
         else if (keyRight)
             playerX = playerX + dx;
+
+        playerX = playerX - (dx * speedPercent * playerSegment.getCurve() * centrifugal_force); // centrifugal force multiplier
 
         if(keyFaster)
             speed = util.accelerate(speed, ACCEL, delta_time);
@@ -217,16 +214,16 @@ public class Road extends Application{
         double basePercent = util.percentRemaining(position, SEGMENT_LENGTH);
         double maxy = HEIGHT;
 
-        int x = 0;
+        double x = 0;
         double dx = - (baseSegment.getCurve() * basePercent);
 
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         //ctx.setFill(Color.GREEN);
         //ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, 0,skyOffset); // Was muss Rotation und Offset sein?
-        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, 0,hillOffset);
-        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, 0,treeOffset);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset,0); // Was muss Rotation und Offset sein?
+        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset,0);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset,0);
 
         int n;
         for(n = 0; n < DRAW_DISTANCE; n++) {
@@ -235,8 +232,11 @@ public class Road extends Application{
             segment.setFog(util.exponentialFog(n / DRAW_DISTANCE, FOG_DENSITY));
             //segment.clip = maxy;
 
-            util.project(segment.getP1(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
-            util.project(segment.getP2(), (playerX * ROAD_WIDTH), CAMERA_HEIGHT, position - (segment.isLooped() ? trackLength : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+            util.project(segment.getP1(), (playerX * ROAD_WIDTH) -x, CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+            util.project(segment.getP2(), (playerX * ROAD_WIDTH) -x -dx, CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+
+            x = x + dx;
+            dx = dx + segment.getCurve();
 
             if((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) || (segment.getP2().getScreen().getY() >= maxy)){
             continue;}
@@ -277,47 +277,104 @@ public class Road extends Application{
 
     //=========================================================================
     // BUILD ROAD GEOMETRY
-    //========================================================================= 
+    //=========================================================================
+    private void addSegment(double curve) {
+        int n = segments.size();
+        segments.add(new Segment(
+                n,
+                new Point3D_2(0, 0, n * SEGMENT_LENGTH),
+                new Point3D_2(0, 0, (n + 1) * SEGMENT_LENGTH),
+                curve,
+                (n / RUMBLE_LENGTH) % 2 == 1 ? Colors.Dark.ROAD : Colors.Light.ROAD
+        ));
+    }
+
+    private void addRoad(int enter, int hold, int leave, int curve){
+        int n;
+        for(n = 0; n < enter; n++){
+            addSegment(util.easeIn(0, curve, n / enter));
+        }
+        for(n = 0; n < hold; n++){
+            addSegment(curve);
+        }
+        for(n = 0; n < leave; n++){
+            addSegment(util.easeInOut(curve, 0, n / leave));
+        }
+    }
+
+    public void addStraight(Integer num) {
+        if (num == null) {
+            num = RoadDefinition.Length.MEDIUM.getValue();
+        }
+        addRoad(num, num, num, 0);
+    }
+
+    public void addCurve(Integer num, Integer curve) {
+        if (num == null) {
+            num = RoadDefinition.Length.MEDIUM.getValue();
+        }
+        if (curve == null) {
+            curve = RoadDefinition.Curve.MEDIUM.getValue();
+        }
+        addRoad(num, num, num, curve);
+    }
+
+    public void addSCurves() {
+        addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
+                RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.EASY.getValue());
+        
+        addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
+                RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue());
+        
+        addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
+                RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.EASY.getValue());
+        
+        addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
+                RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.EASY.getValue());
+        
+        addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
+                RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.MEDIUM.getValue());
+    }
+
+
+
     private void resetRoad() {
         segments.clear();
-        int numSegments = 500; // Anzahl der Segmente
-        Point3D_2 p1;
-        Point3D_2 p2;
-        for (int n = 0; n < numSegments; n++) {
-            int z1 = n * SEGMENT_LENGTH;
-            int z2 = (n + 1) * SEGMENT_LENGTH;
-            p1 = new Point3D_2(0, 0, z1);
-            p2 = new Point3D_2(0, 0, z2);
-            int colorIndex = (int) Math.floor(n / RUMBLE_LENGTH) % 2;
-            Color color = (colorIndex == 0) ? dark : light;
-            segments.add(new Segment(n, p1, p2, color));
-        }
+        addStraight(RoadDefinition.Length.SHORT.getValue()/4);
+        addSCurves();
+        addStraight(RoadDefinition.Length.LONG.getValue());
+        addCurve(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue());
+        addStraight(null);
+        addSCurves();
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue());
+        addStraight(null);
+        addSCurves();
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.EASY.getValue());
 
-        int index = findSegment(playerZ).getIndex();
-        segments.get(index + 2).setColor(start);
-        segments.get(index + 3).setColor(start);
-
+        segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.Start.ROAD);
+        segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.Start.ROAD);
         for (int n = 0; n < RUMBLE_LENGTH; n++) {
-            segments.get(segments.size() - 1 - n).setColor(finish);
+            segments.get(segments.size() - 1 - n).setColor(Colors.Finish.ROAD);
         }
-
         TRACK_LENGTH = segments.size() * SEGMENT_LENGTH;
-        
     }
     
     //=========================================================================
     // THE GAME LOOP
     //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
     public void gameLoop(GraphicsContext ctx) {
-        reset();
+        reset(null);
         while (true) {
             frame(ctx);
             render(ctx);
         }
     }
 
-    private void reset() { //Map<String, Object> options
-        /*int width = util.toInt(options.get("width"), WIDTH);
+    private void reset(HashMap<String, Integer> options) { //Map<String, Object> options
+        options = (options != null) ? options : new HashMap<>();
+        int width = util.toInt(options.get("width"), WIDTH);
         int height = util.toInt(options.get("height"), HEIGHT);
         int lanes = util.toInt(options.get("lanes"), LANES);
         int roadWidth = util.toInt(options.get("roadWidth"), ROAD_WIDTH);
@@ -326,14 +383,15 @@ public class Road extends Application{
         int fogDensity = util.toInt(options.get("fogDensity"), FOG_DENSITY);
         int fieldOfView = util.toInt(options.get("fieldOfView"), FIELD_OF_VIEW);
         int segmentLength = util.toInt(options.get("segmentLength"), SEGMENT_LENGTH);
-        int rumbleLength = util.toInt(options.get("rumbleLength"), RUMBLE_LENGTH);*/
+        int rumbleLength = util.toInt(options.get("rumbleLength"), RUMBLE_LENGTH);
     
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
 
-        //if (segments.isEmpty() || options.containsKey("segmentLength") || options.containsKey("rumbleLength"))
-        resetRoad(); // only rebuild road when necessary
+        if (segments.isEmpty() || options.containsKey("segmentLength") || options.containsKey("rumbleLength")){
+            resetRoad(); // only rebuild road when necessary
+        }
     }
     
     Segment findSegment(double z) {
