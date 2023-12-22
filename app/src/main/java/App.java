@@ -57,6 +57,8 @@ public class App extends Application {
         primaryStage.setScene(connectScene);
         primaryStage.show();
 
+        Road road = new Road();
+        road.start(primaryStage);
     }
 
     private void creatingConnectSzene(Stage primaryStage) {
@@ -76,8 +78,8 @@ public class App extends Application {
             establishConnection(primaryStage);
         });
 
-        connectBox = new VBox(10); // Abstand
-        connectBox.setAlignment(Pos.CENTER); // Zentrieren
+        connectBox = new VBox(10); 
+        connectBox.setAlignment(Pos.CENTER); 
         connectBox.getChildren().add(usernameField); 
         connectBox.getChildren().add(connectbtn); 
         connectBox.getChildren().add(serverStatus);
@@ -95,8 +97,7 @@ public class App extends Application {
         btnStart.setText("Start");
 
         btnStart.setOnAction(event -> {
-            //FormulaGame formulaGame = new FormulaGame();
-            //formulaGame.start(primaryStage);
+            
         });
         
         btnSettings = new Button();
