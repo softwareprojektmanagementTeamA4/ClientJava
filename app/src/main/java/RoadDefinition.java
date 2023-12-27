@@ -27,4 +27,18 @@ public class RoadDefinition {
             return value;
         }
     }
+
+    public enum Hill {
+        NONE(0), LOW(20), MEDIUM(40), HIGH(60);
+
+        private final int value;
+
+        Hill(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
 }

@@ -82,11 +82,11 @@ public class Util {
         return options[randomIndex];
     }
 
-    public double interpolate(double a, double b, double percent) {
+    public static double interpolate(double a, double b, double percent) {
         return a + (b - a) * percent;
     }
 
-    public int toInt(Object obj, int def) {
+    public static int toInt(Object obj, int def) {
         if (obj != null) {
             try {
                 return Integer.parseInt(obj.toString());
