@@ -15,7 +15,7 @@ public class Render {
     //=========================================================================
 
     public void background(GraphicsContext gc, Image background, int width, int height,
-                                  Background background2, double rotation, double offset, double scale) //bennenung letzter parameter?? 
+                                  Background background2, double rotation, double offset) //bennenung letzter parameter?? 
                                   {
 
         

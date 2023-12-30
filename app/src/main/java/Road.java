@@ -215,7 +215,7 @@ public class Road extends Application{
         double basePercent = util.percentRemaining(position, SEGMENT_LENGTH);
         Segment playerSegment = findSegment(position + playerZ);
         double playerPercent = util.percentRemaining(position + playerZ, SEGMENT_LENGTH);
-        double playerY = util.interpolate(playerSegment.getP1().getScreen().getY(), playerSegment.getP2().getScreen().getY(), playerPercent);
+        double playerY = util.interpolate(playerSegment.getP1().getWorld().getY(), playerSegment.getP2().getWorld().getY(), playerPercent);
         double maxy = HEIGHT;
 
         double x = 0;
@@ -225,9 +225,9 @@ public class Road extends Application{
         //ctx.setFill(Color.GREEN);
         //ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset,0, resolution * skySpeed * playerY); // Was muss Rotation und Offset sein?
-        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset,0, resolution * hillSpeed * playerY);
-        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset,0, resolution * treeSpeed * playerY);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset, resolution * skySpeed * playerY); // Was muss Rotation und Offset sein?
+        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset, resolution * hillSpeed * playerY);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset, resolution * treeSpeed * playerY);
 
         int n;
         for(n = 0; n < DRAW_DISTANCE; n++) {
@@ -236,7 +236,7 @@ public class Road extends Application{
             segment.setFog(util.exponentialFog(n / DRAW_DISTANCE, FOG_DENSITY));
             //segment.clip = maxy;
 
-            util.project(segment.getP1(), (playerX * ROAD_WIDTH) -x, playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+            util.project(segment.getP1(), (playerX * ROAD_WIDTH) -x,    playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
             util.project(segment.getP2(), (playerX * ROAD_WIDTH) -x -dx, playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
 
             x = x + dx;
@@ -274,7 +274,7 @@ public class Road extends Application{
                 speed / MAX_SPEED,
                 CAMERA_DEPTH / playerZ,
                 WIDTH / 2,
-                (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * Util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
+                (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
                 speed * (keyLeft ? -1 : keyRight ? 1 : 0),
                 playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY());
                 
@@ -287,7 +287,7 @@ public class Road extends Application{
     //=========================================================================
 
     private double lastY() {
-        return SEGMENT_LENGTH == 0 ? 0 : segments.get(segments.size() - 1).getP2().getWorld().getY();
+        return (segments.size() == 0) ? 0 : segments.get(segments.size() - 1).getP2().getWorld().getY();
     }
 
     private void addSegment(double curve, double y) {
@@ -295,7 +295,7 @@ public class Road extends Application{
         segments.add(new Segment(
                 n,
                 new Point3D_2(0, lastY(), n * SEGMENT_LENGTH),
-                new Point3D_2(0, 0, (n + 1) * SEGMENT_LENGTH),
+                new Point3D_2(0, y, (n + 1) * SEGMENT_LENGTH),
                 curve,
                 (n / RUMBLE_LENGTH) % 2 == 1 ? Colors.Dark.ROAD : Colors.Light.ROAD
         ));
@@ -303,8 +303,9 @@ public class Road extends Application{
 
     private void addRoad(int enter, int hold, int leave, int curve, double d){
         double startY = lastY();
-        double endY = startY + Util.toInt(d, 0) * SEGMENT_LENGTH;
-        double n , total = enter + hold + leave;
+        double endY = startY + (util.toInt(d, 0) * SEGMENT_LENGTH);
+        int n; 
+        double total = enter + hold + leave;
 
         for(n = 0; n < enter; n++){
             addSegment(util.easeIn(0, curve, n / enter), util.easeInOut(startY, endY, n / total));
@@ -370,15 +371,21 @@ public class Road extends Application{
     }
 
     private void addDownhillToEnd(Integer num) {
-        num = num == 0 ? 200 : num;
+        if (num == null) {
+            num = 200;
+        }
         addRoad(num, num, num, -RoadDefinition.Curve.EASY.getValue(), -lastY() / SEGMENT_LENGTH); //EVTL FEHLER segmentLength??
 
     }
 
     private void addLowRollingHills(Integer num, Integer height)
     {
-        num = num == 0 ? RoadDefinition.Length.SHORT.getValue() : num;
-        height = height == 0 ? RoadDefinition.Hill.LOW.getValue() : height;
+         if (num == null) {
+            num = RoadDefinition.Length.SHORT.getValue();
+        }
+        if (height == null) {
+            height = RoadDefinition.Hill.LOW.getValue();
+        }
         addRoad(num, num, num, 0, height / 2);
         addRoad(num, num, num, 0, -height);
         addRoad(num, num, num, 0, height);
@@ -400,8 +407,8 @@ public class Road extends Application{
         addStraight(null);
         addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
         addHill(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Hill.HIGH.getValue());
-        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), -RoadDefinition.Hill.LOW.getValue());
-        addHill(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), -RoadDefinition.Hill.LOW.getValue());
+        addHill(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Hill.MEDIUM.getValue());
         addStraight(null);
         addDownhillToEnd(null);
         
