@@ -93,7 +93,7 @@ public class Road extends Application{
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
-    private ArrayList<Sprite> spritesList = new ArrayList<>();
+    //private ArrayList<Sprite> spritesList = new ArrayList<>();
 
     
     private Image background = new Image("file:src/main/java/images/background.png");
@@ -457,8 +457,8 @@ public class Road extends Application{
                 new Point3D_2(0, lastY(), n * SEGMENT_LENGTH),
                 new Point3D_2(0, y, (n + 1) * SEGMENT_LENGTH),
                 curve,
-                spritesList,
-                cars,
+                new ArrayList<>(),
+                new ArrayList<>(),
                 (n / RUMBLE_LENGTH) % 2 == 1 ? Colors.Dark.ROAD : Colors.Light.ROAD
         ));
     }
