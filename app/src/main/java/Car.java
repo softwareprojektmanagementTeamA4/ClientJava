@@ -15,6 +15,13 @@ public class Car {
         this.sprite = sprite;
     }
 
+    public Car(double offset, double z, Sprite sprite, double speed) {
+        this.offset = offset;
+        this.z = z;
+        this.sprite = sprite;
+        this.speed = speed;
+    }
+
     public double getZ() {
         return z;
     }

@@ -113,15 +113,27 @@ public static Image player_right = PLAYER_RIGHT.getImage();
         return SCALE;
     }
 
-    public final List<Image> BILLBOARDS = Arrays.asList(
-            billboard01, billboard02, billboard03, billboard04, billboard05, billboard06, billboard07, billboard08, billboard09
+    public final List<Sprite> BILLBOARDS = Arrays.asList(
+            BILLBOARD01, BILLBOARD02, BILLBOARD03, BILLBOARD04, BILLBOARD05, BILLBOARD06, BILLBOARD07, BILLBOARD08, BILLBOARD09
     );
 
-    public final List<Image> PLANTS = Arrays.asList(
-        palm_tree, tree1, tree2, cactus, bush1, bush2, stump, dead_tree1, dead_tree2
+    public final List<Sprite> PLANTS = Arrays.asList(
+        PALM_TREE, DEAD_TREE1, DEAD_TREE2, BOULDER1, BOULDER2, BOULDER3, COLUMN, TREE1, TREE2, CACTUS, BUSH1, BUSH2, STUMP
     );
 
-    public final List<Image> CARS = Arrays.asList(
-        car01, car02, car03, car04, truck, semi
+    public final List<Sprite> CARS = Arrays.asList(
+        CAR01, CAR02, CAR03, CAR04, TRUCK, SEMI
     );
+
+    public Sprite getCar(int index) {
+        return CARS.get(index);
+    }
+
+    public Sprite getBillboard(int index) {
+        return BILLBOARDS.get(index);
+    }
+
+    public Sprite getPlant(int index) {
+        return PLANTS.get(index);
+    }
 }

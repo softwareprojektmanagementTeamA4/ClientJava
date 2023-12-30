@@ -83,6 +83,15 @@ class Segment {
         this.fog = fog;
         this.clip = clip;
     }
+    public Segment(int index, Point3D_2 p1, Point3D_2 p2, double curve, ArrayList<Sprite> sprites, ArrayList<Car> cars, Color color) {
+        this.index = index;
+        this.p1 = p1;
+        this.p2 = p2;
+        this.curve = curve;
+        this.sprites = sprites;
+        this.cars = cars;
+        this.color = color;
+    }
 
 
     public int getIndex() {
