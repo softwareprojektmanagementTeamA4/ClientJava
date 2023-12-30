@@ -301,7 +301,7 @@ public class Road extends Application{
         ));
     }
 
-    private void addRoad(int enter, int hold, int leave, int curve, double d){
+    private void addRoad(int enter, int hold, int leave, int curve, int d){
         double startY = lastY();
         double endY = startY + (util.toInt(d, 0) * SEGMENT_LENGTH);
         int n; 
@@ -374,7 +374,7 @@ public class Road extends Application{
         if (num == null) {
             num = 200;
         }
-        addRoad(num, num, num, -RoadDefinition.Curve.EASY.getValue(), -lastY() / SEGMENT_LENGTH); //EVTL FEHLER segmentLength??
+        addRoad(num, num, num, -RoadDefinition.Curve.EASY.getValue(), (int) -lastY() / SEGMENT_LENGTH); //EVTL FEHLER segmentLength??
 
     }
 
