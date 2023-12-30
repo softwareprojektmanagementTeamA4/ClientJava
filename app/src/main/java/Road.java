@@ -34,8 +34,6 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class Road extends Application{
-    private final int SCREEN_WIDTH = 1280;
-    private final int SCREEN_HEIGHT = 960;
     private long serialVersionUID = 1L;
     private int FPS = 60;
     private int WIDTH = 1024;
@@ -67,10 +65,10 @@ public class Road extends Application{
     private double hillOffset = 0;                       // current hill scroll offset
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 200;   
-    private int currentLapTime = 0; 
+    private int currentLapTime = 0;
     private int lastLapTime;
 
-    private double lanes = 0;
+    private int lanes = 3;
     private double currentRoadWidth = 0;
     private double currentCameraHeight = 0;
     private double currentDrawDistance = 0;
@@ -103,7 +101,7 @@ public class Road extends Application{
     Render render = new Render();
 
     StackPane root = new StackPane();
-    Scene scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
+    Scene scene = new Scene(root, WIDTH, HEIGHT);
 
     HashMap<String, Image> images = new HashMap<>();
     ImageLoader imageLoader = new ImageLoader();
@@ -209,6 +207,10 @@ public class Road extends Application{
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
+        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+
         if (keyLeft)
             playerX = playerX - dx;
         else if (keyRight)
@@ -230,9 +232,9 @@ public class Road extends Application{
                 speed = util.accelerate(speed, OFF_ROAD_DECEL, delta_time);
             
             for (int n = 0; n < playerSegment.getSprites().size(); n++) {
-                sprite = playerSegment.getSprite(n);
+                sprite = playerSegment.getSprites().get(n);
                 spriteW = sprite.getSource().getW() * SPRITES.SCALE;
-                if (util.overlap(playerX, playerW, sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1), spriteW, 0)) { // 0 richtig?
+                if (util.overlap(playerX, playerW, sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1), spriteW, Double.NaN)) { // 0 richtig?
                     speed = MAX_SPEED / 5;
                     position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); // stop in front of sprite (at front of segment)
                     break;
@@ -241,7 +243,7 @@ public class Road extends Application{
         }
             
         for (int n = 0; n < playerSegment.getCars().size(); n++) {
-            car = playerSegment.getCar(n);
+            car = playerSegment.getCars().get(n);
             carW = car.getSprite().getW() * SPRITES.SCALE;
             if (speed > car.getSpeed()) {
                 if (util.overlap(playerX, playerW, car.getOffset(), carW, 0.8)) {
@@ -254,10 +256,6 @@ public class Road extends Application{
             
         playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
-
-        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
-        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
-        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
 
         /*if (position > playerZ) {
             if (currentLapTime != 0) { // Überprüft, ob currentLapTime ungleich 0 ist
@@ -289,11 +287,11 @@ public class Road extends Application{
     }
 
     private double updateCarOffset(Car car, Segment carSegment, Segment playerSegment, double playerW) {
-        int dir = 0;
+        double dir = 0;
         Segment segment;
         Car otherCar;
         double otherCarW;
-        int lookahead = 20;
+        double lookahead = 20;
         double carW = car.getSprite().getW() * SPRITES.SCALE;
     
         // Optimierung: Kein Lenken um andere Autos, wenn außerhalb des Sichtbereichs des Spielers
@@ -314,7 +312,7 @@ public class Road extends Application{
             }
     
             for (int j = 0; j < segment.getCars().size(); j++) {
-                otherCar = segment.getCar(j);
+                otherCar = segment.getCars().get(j);
                 otherCarW = otherCar.getSprite().getW() * SPRITES.SCALE;
                 if ((car.getSpeed() > otherCar.getSpeed()) && util.overlap(car.getOffset(), carW, otherCar.getOffset(), otherCarW, 1.2)) {
                     if (otherCar.getOffset() > 0.5)
@@ -452,6 +450,9 @@ public class Road extends Application{
 
     private void addSegment(double curve, double y) {
         int n = segments.size();
+        Color rumbleColor = Colors.getRumbleColor(n, RUMBLE_LENGTH);
+        Color roadColor = Colors.getRoadColor();
+        Color grassColor = Colors.getGrassColor();
         segments.add(new Segment(
                 n,
                 new Point3D_2(0, lastY(), n * SEGMENT_LENGTH),
@@ -459,13 +460,11 @@ public class Road extends Application{
                 curve,
                 new ArrayList<>(),
                 new ArrayList<>(),
-                (n / RUMBLE_LENGTH) % 2 == 1 ? Colors.Dark.ROAD : Colors.Light.ROAD
+                rumbleColor
         ));
     }
 
-    private void addSprite(int n, Sprite sprite, double offset) { // #TODO
-        
-        //segments.get(n).getSprites().add(new Sprite(offset, sprite));
+    private void addSprite(int n, Sprite sprite, double offset) { // #TODO warum funktioniert das mit setSource nicht?? bzw muss ich das anders machen?
         sprite.setOffset(offset);
         //sprite.setSource(sprite);
         segments.get(n).getSprites().add(sprite);
@@ -561,7 +560,7 @@ public class Road extends Application{
 
     private void addLowRollingHills(Integer num, Integer height)
     {
-         if (num == null) {
+        if (num == null) {
             num = RoadDefinition.Length.SHORT.getValue();
         }
         if (height == null) {
@@ -598,10 +597,10 @@ public class Road extends Application{
         resetSprites();
         resetCars();
         
-        segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.Start.ROAD);
-        segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.Start.ROAD);
+        segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.ROAD_START);
+        segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.ROAD_START);
         for (int n = 0; n < RUMBLE_LENGTH; n++) {
-            segments.get(segments.size() - 1 - n).setColor(Colors.Finish.ROAD);
+            segments.get(segments.size() - 1 - n).setColor(Colors.ROAD_FINISH);
         }
         TRACK_LENGTH = segments.size() * SEGMENT_LENGTH;
     }
@@ -658,7 +657,6 @@ public class Road extends Application{
 
     public void resetCars() {
         cars.clear();
-
         for (int n = 0; n < totalCars; n++) {
             double offset = Math.random() * util.randomChoiceDouble(new double[]{-0.8, 0.8});
             double z = Math.floor(Math.random() * segments.size()) * SEGMENT_LENGTH;
