@@ -26,6 +26,10 @@ public class Sprite {
             this.offset = offset;
             this.source = source;
         }
+        public Sprite(double offset, Sprite source) {
+            this.offset = offset;
+            this.source = source;
+        }
 
         public double getX() {
             return x;
@@ -49,6 +53,13 @@ public class Sprite {
 
         public Sprite getSource() {
             return source;
+        }
+
+        public void setSource(Sprite source) {
+            this.source = source;
+        }
+        public void setOffset(double offset) {
+            this.offset = offset;
         }
 
         public Image getImage() { 

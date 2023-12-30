@@ -82,6 +82,11 @@ public class Util {
         return options[randomIndex];
     }
 
+    public double randomChoiceDouble(double[] options) {
+        int randomIndex = randomInt(0, options.length - 1);
+        return options[randomIndex];
+    }
+
     public static double interpolate(double a, double b, double percent) {
         return a + (b - a) * percent;
     }
@@ -107,7 +112,7 @@ public class Util {
 
 
     public boolean overlap(double x1, double w1, double x2, double w2, double percent) {
-        double half = (percent / 2);
+        double half = (percent != 0 ? percent : 1) / 2;
         double min1 = x1 - (w1 * half);
         double max1 = x1 + (w1 * half);
         double min2 = x2 - (w2 * half);
