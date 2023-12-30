@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.Light.Point;
@@ -66,11 +67,23 @@ public class Road extends Application{
     private double treeSpeed = 0.003;                 // background tree layer scroll speed when going around curve (or up hill)
     private double skyOffset = 0;                       // current sky scroll offset
     private double hillOffset = 0;                       // current hill scroll offset
-    private double treeOffset = 0;                       // current tree scroll offset    
+    private double treeOffset = 0;                       // current tree scroll offset
+    private int totalCars = 200;   
+    private Integer currentLapTime = 0; 
+    private Integer lastLapTime = null;
 
-    String path_background_sky = ("background/sky.png");
-    String path_background_hills = ("background/hills.png");
-    String path_background_trees = ("background/trees.png");
+    // UI Variables
+
+    private double lanes = 0;
+    private double currentRoadWidth = 0;
+    private double currentCameraHeight = 0;
+    private double currentDrawDistance = 0;
+    private double currentFieldOfView = 0;
+    private double currentFogDensity = 0;
+
+    private String path_background_sky = ("background/sky.png");
+    private String path_background_hills = ("background/hills.png");
+    private String path_background_trees = ("background/trees.png");
 
     private boolean keyLeft = false;
     private boolean keyRight = false;
@@ -83,6 +96,7 @@ public class Road extends Application{
     private double playerZ = 0;
 
     private ArrayList<Segment> segments = new ArrayList<>();
+    private ArrayList<Car> cars = new ArrayList<>();
     
     private Image background = new Image("file:src/main/java/images/background.png");
     private Image sprites = new Image("file:src/main/java/images/sprites.png");
@@ -97,7 +111,11 @@ public class Road extends Application{
     ImageLoader imageLoader = new ImageLoader();
 
     private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
+
+    private ComboBox<String> resolutionComboBox = createResolutionComboBox();;
+    private ComboBox<String> lanesComboBox = new ComboBox<>();
     
+    Sprites SPRITES = new Sprites();
 
     @Override
     public void start(Stage primaryStage) {
@@ -108,8 +126,13 @@ public class Road extends Application{
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
 
-        StackPane root = new StackPane();
+        VBox root = new VBox(resolutionComboBox);
         root.getChildren().add(canvas);
+        root.getChildren().add(lanesComboBox);
+
+        /*lanesComboBox.getItems().addAll(String.valueOf(LANES));
+        lanesComboBox.setValue(String.valueOf(LANES));
+        lanesComboBox.setDisable(false); // Die ComboBox sperren, um die Auswahl zu verhindern*/
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
@@ -168,6 +191,7 @@ public class Road extends Application{
 		tl.setCycleCount(Timeline.INDEFINITE);
         primaryStage.setScene(scene);
         primaryStage.show();
+        addEventHandlers();
         tl.play();
     }
 
@@ -176,9 +200,19 @@ public class Road extends Application{
     //=========================================================================
 
     private void update(double delta_time) {
+        double n;
+        Car car;
+        Car carW;
+        Sprite sprite;
+        Sprite spriteW;
+
         Segment playerSegment = findSegment(position + playerZ);
+        double playerW = SPRITES.PLAYER_STRAIGHT.getW() * SPRITES.SCALE;
         double speedPercent = speed / MAX_SPEED;
         double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
+        double startPosition = position;
+
+        updateCars(delta_time, playerSegment, playerW);
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
@@ -205,6 +239,72 @@ public class Road extends Application{
         
         playerX = util.limit(playerX, -2, 2);     // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED); // or exceed maxSpeed
+    }
+
+    private void updateCars(double dt, Segment playerSegment, double playerW) {
+        Segment oldSegment, newSegment;
+        for (int n = 0; n < cars.size(); n++) {
+            Car car = cars.get(n);
+            oldSegment = findSegment(car.getZ());
+            car.setOffset(car.getOffset() + updateCarOffset(car, oldSegment, playerSegment, playerW));
+            car.setZ(util.increase(car.getZ(), dt * car.getSpeed(), TRACK_LENGTH));
+            car.setPercent(util.percentRemaining(car.getZ(), SEGMENT_LENGTH)); // useful for interpolation during rendering phase
+            newSegment = findSegment(car.getZ());
+            if (!oldSegment.equals(newSegment)) {
+                int index = oldSegment.getCars().indexOf(car);
+                oldSegment.getCars().remove(index);
+                newSegment.getCars().add(car);
+            }
+        }
+    }
+
+    private double updateCarOffset(Car car, Segment carSegment, Segment playerSegment, double playerW) {
+        int i, j, dir;
+        Segment segment;
+        Car otherCar;
+        double otherCarW;
+        int lookahead = 20;
+        double carW = car.getSprite().getW() * SPRITES.SCALE;
+    
+        // Optimierung: Kein Lenken um andere Autos, wenn außerhalb des Sichtbereichs des Spielers
+        if ((carSegment.getIndex() - playerSegment.getIndex()) > drawDistance)
+            return 0;
+    
+        for (i = 1; i < lookahead; i++) {
+            segment = segments.get((carSegment.getIndex() + i) % segments.size());
+    
+            if ((segment == playerSegment) && (car.getSpeed() > speed) && (util.overlap(playerX, playerW, car.getOffset(), carW, 1.2))) {
+                if (playerX > 0.5)
+                    dir = -1;
+                else if (playerX < -0.5)
+                    dir = 1;
+                else
+                    dir = (car.getOffset() > playerX) ? 1 : -1;
+                return dir * 1.0 / i * (car.getSpeed() - speed) / MAX_SPEED; // je näher die Autos beieinander sind (kleiner i) und je größer das Geschwindigkeitsverhältnis ist, desto größer ist der Offset
+            }
+    
+            for (j = 0; j < segment.getCars().size(); j++) {
+                otherCar = segment.getCars().get(j);
+                otherCarW = otherCar.getSprite().getW() * SPRITES.SCALE;
+                if ((car.getSpeed() > otherCar.getSpeed()) && util.overlap(car.getOffset(), carW, otherCar.getOffset(), otherCarW, 1.2)) {
+                    if (otherCar.getOffset() > 0.5)
+                        dir = -1;
+                    else if (otherCar.getOffset() < -0.5)
+                        dir = 1;
+                    else
+                        dir = (car.getOffset() > otherCar.getOffset()) ? 1 : -1;
+                    return dir * 1.0 / i * (car.getSpeed() - otherCar.getSpeed()) / MAX_SPEED;
+                }
+            }
+        }
+    
+        // Wenn keine Autos voraus sind, aber ich aus irgendeinem Grund von der Straße abgekommen bin, dann wieder zurücklenken
+        if (car.getOffset() < -0.9)
+            return 0.1;
+        else if (car.getOffset() > 0.9)
+            return -0.1;
+        else
+            return 0;
     }
     //=========================================================================
     // RENDER THE GAME WORLD
@@ -474,4 +574,92 @@ public class Road extends Application{
 
         lastTime = timeNow;
     }
+
+    //=========================================================================
+    // TWEAK UI HANDLERS
+    //=========================================================================
+
+
+    private void addEventHandlers() {
+        // Resolution EventHandler
+        resolutionComboBox.setOnAction(event -> {
+            int w, h;
+            double ratio;
+            switch (resolutionComboBox.getValue()) {
+                case "fine":
+                    w = 1280; h = 960; ratio = (double) w / WIDTH;
+                    break;
+                case "high":
+                    w = 1024; h = 768; ratio = (double) w / WIDTH;
+                    break;
+                case "medium":
+                    w = 640; h = 480; ratio = (double) w / WIDTH;
+                    break;
+                case "low":
+                    w = 480; h = 360; ratio = (double) w / WIDTH;
+                    break;
+                default:
+                    w = WIDTH; h = HEIGHT; ratio = 1.0;
+            }
+            reset(new HashMap<String, Integer>() {{
+                put("width", w);
+                put("height", h);
+            }});
+            event.consume();
+        });
+
+        lanesComboBox.setOnAction(event -> {
+            reset(new HashMap<String, Integer>() {{
+                put("lanes", Integer.parseInt(lanesComboBox.getValue())); // Die Anzahl der Fahrspuren aktualisieren
+            }});
+        });
+
+        refreshTweakUI();
+    }
+
+    private void refreshTweakUI() {
+        lanes = LANES;
+        currentRoadWidth = ROAD_WIDTH;
+        currentCameraHeight = CAMERA_HEIGHT;
+        currentDrawDistance = DRAW_DISTANCE;
+        currentFieldOfView = FIELD_OF_VIEW;
+        currentFogDensity = FOG_DENSITY;
+    }
+
+     private ComboBox<String> createResolutionComboBox() {
+        ComboBox<String> resolutionComboBox = new ComboBox<>();
+        resolutionComboBox.getItems().addAll("fine", "high", "medium", "low");
+        resolutionComboBox.setOnAction(event -> {
+            int w, h;
+            switch (resolutionComboBox.getValue()) {
+                case "fine":
+                    w = 1280; h = 960;
+                    break;
+                case "high":
+                    w = 1024; h = 768;
+                    break;
+                case "medium":
+                    w = 640; h = 480;
+                    break;
+                case "low":
+                    w = 480; h = 360;
+                    break;
+                default:
+                    w = WIDTH; h = HEIGHT;
+            }
+            reset(new HashMap<String, Integer>() {{
+                put("width", w);
+                put("height", h);
+            }});
+            event.consume();
+        });
+        return resolutionComboBox;
+    }
+
+    private void changeWindowSize(int width, int height) {
+        Stage stage = (Stage) resolutionComboBox.getScene().getWindow();
+        stage.setWidth(width);
+        stage.setHeight(height);
+    }
+
 }
