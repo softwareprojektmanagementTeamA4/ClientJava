@@ -18,6 +18,15 @@ public class Sprite {
             this.h = h;
         }
 
+        public Sprite(double x, double y, double w, double h, double offset, Sprite source) {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            this.offset = offset;
+            this.source = source;
+        }
+
         public double getX() {
             return x;
         }
@@ -42,8 +51,8 @@ public class Sprite {
             return source;
         }
 
-        public Image getImage() {
-        Image spriteSheet = new Image("file:src/main/resources/spritesheet.png");
+        public Image getImage() { 
+        Image spriteSheet = new Image("file:src/main/java/images/sprites.png");
         PixelReader pixelReader = spriteSheet.getPixelReader();
         WritableImage croppedImage = new WritableImage(pixelReader, (int) x, (int) y, (int) w, (int) h);
         return croppedImage;

@@ -33,8 +33,6 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-
-
 public class Road extends Application{
     private final int SCREEN_WIDTH = 1280;
     private final int SCREEN_HEIGHT = 960;
@@ -70,9 +68,7 @@ public class Road extends Application{
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 200;   
     private int currentLapTime = 0; 
-    private int lastLapTime = (Integer) null;
-
-    // UI Variables
+    private int lastLapTime;
 
     private double lanes = 0;
     private double currentRoadWidth = 0;
@@ -116,7 +112,7 @@ public class Road extends Application{
     private ComboBox<String> resolutionComboBox = createResolutionComboBox();;
     private ComboBox<String> lanesComboBox = new ComboBox<>();
     
-    Sprites SPRITES = new Sprites();
+    private Sprites SPRITES = new Sprites();
 
     @Override
     public void start(Stage primaryStage) {
@@ -130,10 +126,6 @@ public class Road extends Application{
         VBox root = new VBox(resolutionComboBox);
         root.getChildren().add(canvas);
         root.getChildren().add(lanesComboBox);
-
-        /*lanesComboBox.getItems().addAll(String.valueOf(LANES));
-        lanesComboBox.setValue(String.valueOf(LANES));
-        lanesComboBox.setDisable(false); // Die ComboBox sperren, um die Auswahl zu verhindern*/
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
@@ -448,7 +440,6 @@ public class Road extends Application{
         return segments.get((int) Math.floor(z / SEGMENT_LENGTH) % segments.size());
     }
    
-
     //=========================================================================
     // BUILD ROAD GEOMETRY
     //=========================================================================
@@ -578,8 +569,6 @@ public class Road extends Application{
         addRoad(num, num, num, 0, 0);
     }
 
-
-
     private void resetRoad() {
         segments.clear();
         addStraight(RoadDefinition.Length.SHORT.getValue());
@@ -664,7 +653,6 @@ public class Road extends Application{
 
     }
 
-
     public void resetCars() {
         cars.clear();
 
@@ -718,25 +706,15 @@ public class Road extends Application{
         long timeNow = System.currentTimeMillis();
         double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
-
         double step = 1.0 / FPS; 
-
-        // while (globalDeltaTime > step) {
-        //     globalDeltaTime -= step;
-        //     update(step);
-        // }
         update(step);
-
         render(ctx);
-
         lastTime = timeNow;
     }
 
     //=========================================================================
     // TWEAK UI HANDLERS
     //=========================================================================
-
-
     private void addEventHandlers() {
         // Resolution EventHandler
         resolutionComboBox.setOnAction(event -> {
