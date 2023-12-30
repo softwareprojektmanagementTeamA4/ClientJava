@@ -4,10 +4,12 @@ import javafx.scene.image.WritableImage;
 
 
 public class Sprite {
-        private final double x;
-        private final double y;
-        private final double w;
-        private final double h;
+        private double x;
+        private double y;
+        private double w;
+        private double h;
+        private double offset;
+        private Sprite source;
 
         public Sprite(double x, double y, double w, double h) {
             this.x = x;
@@ -30,6 +32,14 @@ public class Sprite {
 
         public double getH() {
             return h;
+        }
+
+        public double getOffset(){
+            return offset;
+        }
+
+        public Sprite getSource() {
+            return source;
         }
 
         public Image getImage() {

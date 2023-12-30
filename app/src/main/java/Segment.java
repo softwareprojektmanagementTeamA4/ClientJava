@@ -1,4 +1,5 @@
 import javafx.scene.paint.Color;
+import java.util.ArrayList;
 
 
 class Segment {
@@ -8,8 +9,10 @@ class Segment {
     private double fog;
     private Point3D_2 p1;
     private Point3D_2 p2;
-    private int clip;
+    private double clip;
     private double curve;
+    private ArrayList<Car> cars = new ArrayList<>();
+    private ArrayList<Sprite> sprites = new ArrayList<>();
 
 
     public Segment(int index) {
@@ -122,11 +125,11 @@ class Segment {
         return p2;
     }
 
-    public int getClip() {
+    public double getClip() {
         return clip;
     }
 
-    public void setClip(int clip) {
+    public void setClip(double clip) {
         this.clip = clip;
     }
 
@@ -136,6 +139,22 @@ class Segment {
 
     public void setCurve(double curve){
         this.curve = curve;
+    }
+
+    public ArrayList<Car> getCars() {
+        return cars;
+    }
+
+    public Car getCar(int index){
+        return cars.get(index);
+    }
+
+    public ArrayList<Sprite> getSprites() {
+        return sprites;
+    }
+
+    public Sprite getSprite(int index){
+        return sprites.get(index);
     }
 }
 

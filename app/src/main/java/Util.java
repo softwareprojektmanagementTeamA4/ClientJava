@@ -104,4 +104,14 @@ public class Util {
     public double easeInOut(double a, double b, double percent) {
         return (a + (b - a) * (1 - Math.pow(1 - percent, 2)));
     }
+
+
+    public boolean overlap(double x1, double w1, double x2, double w2, double percent) {
+        double half = (percent / 2);
+        double min1 = x1 - (w1 * half);
+        double max1 = x1 + (w1 * half);
+        double min2 = x2 - (w2 * half);
+        double max2 = x2 + (w2 * half);
+        return !((max1 < min2) || (min1 > max2));
+    }
 }

@@ -69,8 +69,8 @@ public class Road extends Application{
     private double hillOffset = 0;                       // current hill scroll offset
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 200;   
-    private Integer currentLapTime = 0; 
-    private Integer lastLapTime = null;
+    private int currentLapTime = 0; 
+    private int lastLapTime = (Integer) null;
 
     // UI Variables
 
@@ -200,11 +200,10 @@ public class Road extends Application{
     //=========================================================================
 
     private void update(double delta_time) {
-        double n;
         Car car;
-        Car carW;
+        double carW;
         Sprite sprite;
-        Sprite spriteW;
+        double spriteW;
 
         Segment playerSegment = findSegment(position + playerZ);
         double playerW = SPRITES.PLAYER_STRAIGHT.getW() * SPRITES.SCALE;
@@ -215,10 +214,6 @@ public class Road extends Application{
         updateCars(delta_time, playerSegment, playerW);
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
-
-        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * speedPercent, 1);
-        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * speedPercent, 1);
-        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * speedPercent, 1);
 
         if (keyLeft)
             playerX = playerX - dx;
@@ -234,11 +229,50 @@ public class Road extends Application{
         else
             speed = util.accelerate(speed, DECEL, delta_time);
         
-        if (((playerX < -1) || (playerX > 1)) && (speed > OFF_ROAD_LIMIT))
-            speed = util.accelerate(speed, OFF_ROAD_DECEL, delta_time);
         
-        playerX = util.limit(playerX, -2, 2);     // dont ever let it go too far out of bounds
-        speed = util.limit(speed, 0, MAX_SPEED); // or exceed maxSpeed
+        if ((playerX < -1) || (playerX > 1)) {
+
+            if (speed > OFF_ROAD_LIMIT)
+                speed = util.accelerate(speed, OFF_ROAD_DECEL, delta_time);
+            
+            for (int n = 0; n < playerSegment.getSprites().size(); n++) {
+                sprite = playerSegment.getSprite(n);
+                spriteW = sprite.getSource().getW() * SPRITES.SCALE;
+                if (util.overlap(playerX, playerW, sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1), spriteW, 0)) { // 0 richtig?
+                    speed = MAX_SPEED / 5;
+                    position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); // stop in front of sprite (at front of segment)
+                    break;
+                }
+            }
+        }
+            
+        for (int n = 0; n < playerSegment.getCars().size(); n++) {
+            car = playerSegment.getCar(n);
+            carW = car.getSprite().getW() * SPRITES.SCALE;
+            if (speed > car.getSpeed()) {
+                if (util.overlap(playerX, playerW, car.getOffset(), carW, 0.8)) {
+                    speed = car.getSpeed() * (car.getSpeed() / speed);
+                    position = util.increase(car.getZ(), -playerZ, TRACK_LENGTH);
+                    break;
+                }
+            }
+        }
+            
+        playerX = util.limit(playerX, -3, 3);         // dont ever let it go too far out of bounds
+        speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
+
+        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+
+        if (position > playerZ) {
+            if (currentLapTime != 0 && (startPosition < playerZ)) {
+                lastLapTime = currentLapTime;
+                currentLapTime = 0;
+            } else {
+                currentLapTime += delta_time;
+            }
+        }
     }
 
     private void updateCars(double dt, Segment playerSegment, double playerW) {
@@ -267,7 +301,7 @@ public class Road extends Application{
         double carW = car.getSprite().getW() * SPRITES.SCALE;
     
         // Optimierung: Kein Lenken um andere Autos, wenn außerhalb des Sichtbereichs des Spielers
-        if ((carSegment.getIndex() - playerSegment.getIndex()) > drawDistance)
+        if ((carSegment.getIndex() - playerSegment.getIndex()) > DRAW_DISTANCE)
             return 0;
     
         for (i = 1; i < lookahead; i++) {
@@ -330,11 +364,18 @@ public class Road extends Application{
         render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset, resolution * treeSpeed * playerY);
 
         int n;
+        int i;
+        Car car;
+        Sprite sprite;
+        double spriteScale;
+        double spriteX;
+        double spriteY;
+
         for(n = 0; n < DRAW_DISTANCE; n++) {
             Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
             segment.setLooped(segment.getIndex() < baseSegment.getIndex());
             segment.setFog(util.exponentialFog(n / DRAW_DISTANCE, FOG_DENSITY));
-            //segment.clip = maxy;
+            segment.setClip(maxy);
 
             util.project(segment.getP1(), (playerX * ROAD_WIDTH) -x,    playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
             util.project(segment.getP2(), (playerX * ROAD_WIDTH) -x -dx, playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
@@ -361,24 +402,45 @@ public class Road extends Application{
                 segment.getFog(),
                 segment.getColor());
             
-            maxy = segment.getP2().getScreen().getY();
+            maxy = segment.getP1().getScreen().getY();
             }
 
-            render.player(
-                ctx,
-                WIDTH,
-                HEIGHT,
-                resolution,
-                ROAD_WIDTH,
-                sprites,
-                speed / MAX_SPEED,
-                CAMERA_DEPTH / playerZ,
-                WIDTH / 2,
-                (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
-                speed * (keyLeft ? -1 : keyRight ? 1 : 0),
-                playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY());
-                
+            for(n = (DRAW_DISTANCE - 1); n > 0; n--) {
+                Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
+                for(i = 0; i < segment.getCars().size(); i++) {
+                    car = segment.getCar(i);
+                    sprite = car.getSprite();
+                    spriteScale = util.interpolate(segment.getP1().getScreen().getScale(), segment.getP2().getScreen().getScale(), car.getPercent());
+                    spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(), car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
+                    spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(), car.getPercent());
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip());
+                }
+
+                for(i = 0; i < segment.getSprites().size(); i++) {
+                    sprite = segment.getSprite(i);
+                    spriteScale = segment.getP1().getScreen().getScale();
+                    spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
+                    spriteY = segment.getP1().getScreen().getY();
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+                }
+
+                if (segment == playerSegment) {
+                    render.player(
+                        ctx,
+                        WIDTH,
+                        HEIGHT,
+                        resolution,
+                        ROAD_WIDTH,
+                        sprites,
+                        speed / MAX_SPEED,
+                        CAMERA_DEPTH / playerZ,
+                        WIDTH / 2,
+                        (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
+                        speed * (keyLeft ? -1 : keyRight ? 1 : 0),
+                        playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY());
+                }
+            }
     }
    
 

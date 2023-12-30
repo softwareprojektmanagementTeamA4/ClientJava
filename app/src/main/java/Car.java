@@ -1,9 +1,9 @@
 public class Car {
-    double z;
-    double speed;
-    double offset;
-    double percent;
-    Sprite sprite;
+    private double z;
+    private double speed;
+    private double offset;
+    private double percent;
+    private Sprite sprite;
 
 
 
