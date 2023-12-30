@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 
 public class Render {
     Util util = new Util();
+    private static Sprites SPRITES = new Sprites();
     Color rumbleColor = Colors.Light.RUMBLE;
     Color roadColor = Colors.Light.ROAD;
     public static final Background HILLS = new Background(5, 5, 1280, 480);
@@ -103,7 +104,7 @@ public class Render {
     private void fog(GraphicsContext ctx, double x, double y, double width, double height, double fog) {
         if (fog < 1) {
             ctx.setGlobalAlpha(1 - fog);
-            ctx.setFill(Color.GRAY); // Ändern Sie dies entsprechend Ihrer Farbdefinition
+            ctx.setFill(Colors.FOG); // Ändern Sie dies entsprechend Ihrer Farbdefinition
             ctx.fillRect(x, y, width, height);
             ctx.setGlobalAlpha(1);
         }
@@ -125,8 +126,8 @@ public class Render {
             double clipY
     ) {
         // Skalierung für die Projektion UND relativ zur roadWidth (für tweakUI)
-        double destW = (sprite.getW() * scale * width / 2) * (Sprites.getScale() * roadWidth);
-        double destH = (sprite.getH() * scale * width / 2) * (Sprites.getScale() * roadWidth);
+        double destW = (sprite.getW() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
+        double destH = (sprite.getH() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
 
         destX = destX + (destW * offsetX);
         destY = destY + (destH * offsetY);
@@ -165,11 +166,11 @@ public class Render {
         Sprite playerSprite;
 
         if (steer < 0)
-            playerSprite = (updown > 0) ? Sprites.PLAYER_UPHILL_LEFT : Sprites.PLAYER_LEFT;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
         else if (steer > 0)
-            playerSprite = (updown > 0) ? Sprites.PLAYER_UPHILL_RIGHT : Sprites.PLAYER_RIGHT;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
         else
-            playerSprite = (updown > 0) ? Sprites.PLAYER_UPHILL_STRAIGHT : Sprites.PLAYER_STRAIGHT;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
 
         sprite(
                 ctx,

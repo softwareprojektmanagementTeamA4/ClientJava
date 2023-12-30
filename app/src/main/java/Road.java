@@ -124,9 +124,9 @@ public class Road extends Application{
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
 
-        VBox root = new VBox(resolutionComboBox);
+        StackPane root = new StackPane();
         root.getChildren().add(canvas);
-        root.getChildren().add(lanesComboBox);
+        //root.getChildren().add(lanesComboBox);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
@@ -176,8 +176,8 @@ public class Road extends Application{
         });
 
         // ImageLoader
-        images = imageLoader.loadImagesFromFolder("src/main/java/images/sprites", images);
-        images = imageLoader.loadImagesFromFolder("src/main/java/images", images);
+        //images = imageLoader.loadImagesFromFolder("src/main/java/images/sprites", images);
+        //images = imageLoader.loadImagesFromFolder("src/main/java/images", images);
 
         //JavaFX Timeline = free form animation defined by KeyFrames and their duration 
 		Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1.0 / FPS), e -> gameLoop(ctx)));
@@ -252,14 +252,14 @@ public class Road extends Application{
             }
         }
             
-        playerX = util.limit(playerX, -3, 3);         // dont ever let it go too far out of bounds
+        playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
 
         skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
         hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
         treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
 
-        if (position > playerZ) {
+        /*if (position > playerZ) {
             if (currentLapTime != 0) { // Überprüft, ob currentLapTime ungleich 0 ist
                 if (startPosition < playerZ) {
                     lastLapTime = currentLapTime;
@@ -268,7 +268,7 @@ public class Road extends Application{
             } else {
                 currentLapTime += delta_time;
             }
-        }
+        }*/
     }
 
     private void updateCars(double dt, Segment playerSegment, double playerW) {
@@ -289,7 +289,7 @@ public class Road extends Application{
     }
 
     private double updateCarOffset(Car car, Segment carSegment, Segment playerSegment, double playerW) {
-        int dir;
+        int dir = 0;
         Segment segment;
         Car otherCar;
         double otherCarW;
@@ -359,15 +359,14 @@ public class Road extends Application{
         render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset, resolution * hillSpeed * playerY);
         render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset, resolution * treeSpeed * playerY);
 
-        int n;
-        int i;
+        
         Car car;
         Sprite sprite;
         double spriteScale;
         double spriteX;
         double spriteY;
 
-        for(n = 0; n < DRAW_DISTANCE; n++) {
+        for(int n = 0; n < DRAW_DISTANCE; n++) {
             Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
             segment.setLooped(segment.getIndex() < baseSegment.getIndex());
             segment.setFog(util.exponentialFog(n / DRAW_DISTANCE, FOG_DENSITY));
@@ -401,19 +400,19 @@ public class Road extends Application{
             maxy = segment.getP1().getScreen().getY();
             }
 
-            for(n = (DRAW_DISTANCE - 1); n > 0; n--) {
+            for(int n = (DRAW_DISTANCE - 1); n > 0; n--) {
                 Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
-                for(i = 0; i < segment.getCars().size(); i++) {
+                for(int i = 0; i < segment.getCars().size(); i++) {
                     car = segment.getCar(i);
                     sprite = car.getSprite();
                     spriteScale = util.interpolate(segment.getP1().getScreen().getScale(), segment.getP2().getScreen().getScale(), car.getPercent());
                     spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(), car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(), car.getPercent());
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip());
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip()); //#TODO ist sprites richtig?
                 }
 
-                for(i = 0; i < segment.getSprites().size(); i++) {
+                for(int i = 0; i < segment.getSprites().size(); i++) {
                     sprite = segment.getSprite(i);
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
@@ -464,9 +463,11 @@ public class Road extends Application{
         ));
     }
 
-    private void addSprite(int n, Sprite sprite, double offset) {
+    private void addSprite(int n, Sprite sprite, double offset) { // #TODO
+        
         //segments.get(n).getSprites().add(new Sprite(offset, sprite));
         sprite.setOffset(offset);
+        //sprite.setSource(sprite);
         segments.get(n).getSprites().add(sprite);
       }
 
@@ -577,22 +578,21 @@ public class Road extends Application{
     private void resetRoad() {
         segments.clear();
         addStraight(RoadDefinition.Length.SHORT.getValue());
+        addHill(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
         addLowRollingHills(null, null);
-        addSCurves();
+        addBumps();
         addCurve(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
-        addBumps();
-        addLowRollingHills(null, null);
-        addCurve(RoadDefinition.Length.LONG.getValue()*2, RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
+        //addBumps();
+        //addLowRollingHills(null, null);
+        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
+        //addStraight(null);
+        //addHill(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Hill.HIGH.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
+        //addHill(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Hill.HIGH.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
+        //addBumps();
+        //addHill(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Hill.MEDIUM.getValue());
         addStraight(null);
-        addHill(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Hill.HIGH.getValue());
-        addSCurves();
-        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.NONE.getValue());
-        addHill(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Hill.HIGH.getValue());
-        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), -RoadDefinition.Hill.LOW.getValue());
-        addBumps();
-        addHill(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Hill.MEDIUM.getValue());
-        addStraight(null);
-        addSCurves();
         addDownhillToEnd(null);
 
         resetSprites();
@@ -607,8 +607,6 @@ public class Road extends Application{
     }
 
     public void resetSprites() {
-        int n, i;
-
         addSprite(20,  SPRITES.BILLBOARD07, -1);
         addSprite(40,  SPRITES.BILLBOARD06, -1);
         addSprite(60,  SPRITES.BILLBOARD08, -1);
@@ -624,18 +622,18 @@ public class Road extends Application{
         addSprite(segments.size() - 25, SPRITES.BILLBOARD07, -1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD06,  1.2);
 
-        for (n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
+        for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
             addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
             addSprite(n, SPRITES.PALM_TREE,   1 + Math.random() * 2);
         }
 
-        for (n = 250; n < 1000; n += 5) {
+        for (int n = 250; n < 1000; n += 50) {
             addSprite(n, SPRITES.COLUMN , 1.1);
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE1, -1 - (Math.random() * 2));
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE2, -1 - (Math.random() * 2));
         }
 
-        for (n = 200; n < segments.size(); n += 3) {
+        for (int n = 200; n < segments.size(); n += 30) {
             int choice = util.randomChoice(new int[]{0,12});
             addSprite(n, SPRITES.getPlant(choice), util.randomChoice(new int[]{1,-1}) * (2 + Math.random() * 5));
         }
@@ -643,11 +641,11 @@ public class Road extends Application{
         double side;
         double offset;
         Sprite sprite;
-        for (n = 1000; n < (segments.size() - 50); n += 100) {
+        for (int n = 1000; n < (segments.size() - 50); n += 500) {
             side = util.randomChoice(new int[]{1, -1});
             int billboardChoice = util.randomChoice(new int[]{0,8});
             addSprite(n + util.randomInt(0, 50), SPRITES.getBillboard(billboardChoice), -side);
-            for (i = 0; i < 20; i++) {
+            for (int i = 0; i < 20; i++) {
                 int plantChoice = util.randomChoice(new int[]{0,12});
                 sprite = SPRITES.getPlant(plantChoice);
                 offset = side * (1.5 + Math.random());
@@ -662,8 +660,8 @@ public class Road extends Application{
         cars.clear();
 
         for (int n = 0; n < totalCars; n++) {
-            double offset = Math.random() * util.randomChoiceDouble(new double[]{-0,8, 0,8});
-            double z = Math.floor(Math.random() * SEGMENT_LENGTH) * SEGMENT_LENGTH;
+            double offset = Math.random() * util.randomChoiceDouble(new double[]{-0.8, 0.8});
+            double z = Math.floor(Math.random() * segments.size()) * SEGMENT_LENGTH;
             int choice = util.randomChoice(new int[]{0, 5});
             Sprite sprite = SPRITES.getCar(choice);
             double speed = MAX_SPEED / 4 + Math.random() * MAX_SPEED / (sprite == SPRITES.SEMI ? 4 : 2);
