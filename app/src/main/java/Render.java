@@ -131,8 +131,8 @@ public class Render {
         double destW = (sprite.getW() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
         double destH = (sprite.getH() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
 
-        destX = destX + (destW * offsetX);
-        destY = destY + (destH * offsetY);
+        destX = destX + (Double.isNaN(offsetX) ? 0 : destW * offsetX);
+        destY = destY + (Double.isNaN(offsetY) ? 0 : destH * offsetY);
 
         double clipH = clipY > 0 ? Math.max(0, destY + destH - clipY) : 0;
         if (clipH < destH) {
@@ -151,44 +151,63 @@ public class Render {
     }
 
     public void player(
-            GraphicsContext ctx,
-            double width,
-            double height,
-            double resolution,
-            double roadWidth,
-            Image sprites,
-            double speedPercent,
-            double scale,
-            double destX,
-            double destY,
-            double steer,
-            double updown
-    ) {
-        double bounce = (1.5 * Math.random() * speedPercent * resolution) * util.randomChoice(new int[]{-1, 1});
-        Sprite playerSprite;
+        GraphicsContext ctx,
+        Image sprites,
+        double width,
+        double height,
+        double resolution,
+        double roadWidth,
+        double speedPercent,
+        double scale,
+        double destX,
+        double destY,
+        double steer,
+        double updown,
+        boolean nitro
+) {
+    double bounce = (1.5 * Math.random() * speedPercent * resolution) * util.randomChoice(new int[]{-1, 1});
+    
+    Sprite playerSprite;
 
-        if (steer < 0)
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
-        else if (steer > 0)
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
-        else
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
+    /*if (steer < 0)
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
+    else if (steer > 0)
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
+    else
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;*/
 
-        sprite(
-                ctx,
-                width,
-                height,
-                resolution,
-                roadWidth,
-                sprites,
-                playerSprite,
-                scale,
-                destX,
-                destY + bounce,
-                -0.5,
-                -1,
-                0 // Wissen nicht was clipY ist
-        );
+    if (steer < 0) {
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
+        if (nitro) {
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT_NITRO : SPRITES.PLAYER_LEFT_NITRO;
+        }
+    } else if (steer > 0) {
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
+        if (nitro) {
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_RIGHT_NITRO;
+        }
+    } else {
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
+        if (nitro) {
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_STRAIGHT_NITRO;
+        }
     }
+
+    sprite(
+            ctx,
+            width,
+            height,
+            resolution,
+            roadWidth,
+            sprites,
+            playerSprite,
+            scale,
+            destX,
+            destY + bounce,
+            -0.5,
+            -1,
+            0 // Not sure about clipY
+    );
+}
     
 }

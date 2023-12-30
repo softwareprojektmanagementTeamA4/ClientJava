@@ -89,13 +89,19 @@ public class Road extends Application{
     private double playerX = 0;
     private double playerZ = 0;
 
+    private boolean nitrokey = false;
+    private double nitro = 100;
+    private double maxNitro = 100;
+    private boolean nitroRecharge = false;
+    private boolean nitroActive = false;
+
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
-    //private ArrayList<Sprite> spritesList = new ArrayList<>();
 
-    
     private Image background = new Image("file:src/main/java/images/background.png");
-    private Image sprites = new Image("file:src/main/java/images/sprites.png");
+    private Image sprites = new Image("file:src/main/java/images/spritesheet.png");
+    private Image nitroBottle = new Image("file:src/main/java/images/nitro.png");
+    private Image nitroBottleEmpty = new Image("file:src/main/java/images/nitro_empty.png");
 
     Util util = new Util();
     Render render = new Render();
@@ -149,6 +155,9 @@ public class Road extends Application{
                 case S:
                     keySlower = true;
                     break;
+                case SPACE:
+                    nitrokey = true;
+                    break;
             }
         });
         
@@ -169,6 +178,9 @@ public class Road extends Application{
                 case DOWN:
                 case S:
                     keySlower = false;
+                    break;
+                case SPACE:
+                    nitrokey = false; 
                     break;
             }
         });
@@ -224,6 +236,25 @@ public class Road extends Application{
             speed = util.accelerate(speed, BREAKING, delta_time);
         else
             speed = util.accelerate(speed, DECEL, delta_time);
+
+        if (nitrokey) {
+            if (nitro <= 0) {
+                nitroRecharge = true;
+            } else if (!nitroRecharge && speed > 0) {
+                nitroActive = true;
+                speed = util.accelerate(speed, ACCEL * 2.5, delta_time); // 2,5x so schnell Beschleunigen
+                nitro -= 1;
+            }
+        } else {
+            nitroActive = false;
+        }
+
+        if (nitroRecharge) {
+            nitroActive = false;
+            nitro += 0.0625;
+            nitro = Math.min(nitro, maxNitro);
+            nitroRecharge = nitro < maxNitro;
+        }
         
         
         if ((playerX < -1) || (playerX > 1)) {
@@ -407,7 +438,7 @@ public class Road extends Application{
                     spriteScale = util.interpolate(segment.getP1().getScreen().getScale(), segment.getP2().getScreen().getScale(), car.getPercent());
                     spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(), car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(), car.getPercent());
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip()); //#TODO ist sprites richtig?
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites,  car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip()); //#TODO ist sprites richtig?
                 }
 
                 for(int i = 0; i < segment.getSprites().size(); i++) {
@@ -415,23 +446,24 @@ public class Road extends Application{
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = segment.getP1().getScreen().getY();
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
                 }
 
                 if (segment == playerSegment) {
                     render.player(
                         ctx,
+                        sprites,
                         WIDTH,
                         HEIGHT,
                         resolution,
                         ROAD_WIDTH,
-                        sprites,
                         speed / MAX_SPEED,
                         CAMERA_DEPTH / playerZ,
                         WIDTH / 2,
                         (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
                         speed * (keyLeft ? -1 : keyRight ? 1 : 0),
-                        playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY());
+                        playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY(),
+                        nitrokey);
                 }
             }
     }

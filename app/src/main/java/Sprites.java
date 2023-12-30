@@ -106,6 +106,25 @@ public static Image player_straight = PLAYER_STRAIGHT.getImage();
 public static Sprite PLAYER_RIGHT = new Sprite(995, 531, 80, 41);
 public static Image player_right = PLAYER_RIGHT.getImage();
 
+public static Sprite PLAYER_UPHILL_LEFT_NITRO = new Sprite(1383, 1133, 80, 46);
+public static Image player_uphill_left_nitro = PLAYER_UPHILL_LEFT_NITRO.getImage();
+
+public static Sprite PLAYER_UPHILL_STRAIGHT_NITRO = new Sprite(1295, 1074, 80, 46);
+public static Image player_uphill_straight_nitro = PLAYER_UPHILL_STRAIGHT_NITRO.getImage();
+
+public static Sprite PLAYER_UPHILL_RIGHT_NITRO = new Sprite(1385, 1074, 80, 46);
+public static Image player_uphill_right_nitro = PLAYER_UPHILL_RIGHT_NITRO.getImage();
+
+public static Sprite PLAYER_LEFT_NITRO = new Sprite(995, 625, 80, 41);
+public static Image player_left_nitro = PLAYER_LEFT_NITRO.getImage();
+
+public static Sprite PLAYER_STRAIGHT_NITRO = new Sprite(1085, 578, 80, 41);
+public static Image player_straight_nitro = PLAYER_STRAIGHT_NITRO.getImage();
+
+public static Sprite PLAYER_RIGHT_NITRO = new Sprite(995, 577, 80, 41);
+public static Image player_right_nitro = PLAYER_RIGHT_NITRO.getImage();
+
+
     public static double SCALE = 0.3 * (1 / PLAYER_STRAIGHT.getW()); // the reference sprite width should be 1/3rd the (half-)roadWidth
     
 
