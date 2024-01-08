@@ -99,7 +99,7 @@ public class Road extends Application{
     private ArrayList<Car> cars = new ArrayList<>();
 
     private Image background = new Image("file:src/main/java/images/background.png");
-    private Image sprites = new Image("file:src/main/java/images/spritesheet.png");
+    private Image sprites = new Image("file:src/main/java/images/sprites.png");
     private Image nitroBottle = new Image("file:src/main/java/images/nitro.png");
     private Image nitroBottleEmpty = new Image("file:src/main/java/images/nitro_empty.png");
 
@@ -497,9 +497,9 @@ public class Road extends Application{
     }
 
     private void addSprite(int n, Sprite sprite, double offset) { // #TODO warum funktioniert das mit setSource nicht?? bzw muss ich das anders machen?
-        sprite.setOffset(offset);
+        //sprite.setOffset(offset);
         //sprite.setSource(sprite);
-        segments.get(n).getSprites().add(sprite);
+        segments.get(n).getSprites().add(new Sprite(offset, sprite));
       }
 
     private void addRoad(int enter, int hold, int leave, int curve, int d){

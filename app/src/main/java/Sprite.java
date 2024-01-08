@@ -18,15 +18,11 @@ public class Sprite {
             this.h = h;
         }
 
-        public Sprite(double x, double y, double w, double h, double offset, Sprite source) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-            this.offset = offset;
-            this.source = source;
-        }
         public Sprite(double offset, Sprite source) {
+            //this.x = source.x;
+            //this.y = source.y;
+            //this.w = source.w;
+            //this.h = source.h;
             this.offset = offset;
             this.source = source;
         }
