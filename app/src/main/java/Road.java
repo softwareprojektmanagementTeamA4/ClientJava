@@ -20,6 +20,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import io.socket.client.IO;
@@ -105,10 +106,7 @@ public class Road extends Application{
 
     Util util = new Util();
     Render render = new Render();
-
-    StackPane root = new StackPane();
-    Scene scene = new Scene(root, WIDTH, HEIGHT);
-
+    
     HashMap<String, Image> images = new HashMap<>();
     ImageLoader imageLoader = new ImageLoader();
 
@@ -121,14 +119,15 @@ public class Road extends Application{
 
     @Override
     public void start(Stage primaryStage) {
+        getSettingsFromApp(primaryStage);
+
         primaryStage.setTitle("Javascript Racer - v1 (straight)");
         primaryStage.setResizable(false);
 
+        StackPane root = new StackPane();
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
-
-        StackPane root = new StackPane();
         root.getChildren().add(canvas);
         //root.getChildren().add(lanesComboBox);
 
@@ -497,9 +496,10 @@ public class Road extends Application{
     }
 
     private void addSprite(int n, Sprite sprite, double offset) { // #TODO warum funktioniert das mit setSource nicht?? bzw muss ich das anders machen?
-        //sprite.setOffset(offset);
+        sprite.setOffset(offset);
         //sprite.setSource(sprite);
-        segments.get(n).getSprites().add(new Sprite(offset, sprite));
+        //segments.get(n).getSprites().add(new Sprite(offset, sprite));
+        segments.get(n).getSprites().add(sprite);
       }
 
     private void addRoad(int enter, int hold, int leave, int curve, int d){
@@ -638,7 +638,8 @@ public class Road extends Application{
     }
 
     public void resetSprites() {
-        addSprite(20,  SPRITES.BILLBOARD07, -1);
+        
+        addSprite(20,  SPRITES.BILLBOARD01, -1);
         addSprite(40,  SPRITES.BILLBOARD06, -1);
         addSprite(60,  SPRITES.BILLBOARD08, -1);
         addSprite(80,  SPRITES.BILLBOARD09, -1);
@@ -652,6 +653,7 @@ public class Road extends Application{
         addSprite(240,SPRITES.BILLBOARD06, 1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD07, -1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD06,  1.2);
+
 
         for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
             addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
@@ -828,5 +830,22 @@ public class Road extends Application{
         Stage stage = (Stage) resolutionComboBox.getScene().getWindow();
         stage.setWidth(width);
         stage.setHeight(height);
+    }
+    private void getSettingsFromApp(Stage primaryStage){
+        ROAD_WIDTH = App.getRoadWidthSliderValue();
+        LANES = App.getLanesSliderValue();
+        lanes = LANES;
+        CAMERA_HEIGHT = App.getCameraHeightSliderValue();
+        DRAW_DISTANCE = App.getDrawDistanceSliderValue();
+        FIELD_OF_VIEW = App.getFieldOfViewSliderValue();
+        FOG_DENSITY = App.getFogDensitySliderValue();
+        WIDTH = App.getResolutionSliderValueWidth();
+        HEIGHT = App.getResolutionSliderValueHeight();
+        if(App.getFullscreenToggleValue()){
+            WIDTH = (int) Screen.getPrimary().getVisualBounds().getWidth();
+            HEIGHT = (int) Screen.getPrimary().getVisualBounds().getHeight();
+            primaryStage.setFullScreen(true);
+        }
+        
     }
 }
