@@ -846,6 +846,5 @@ public class Road extends Application{
             HEIGHT = (int) Screen.getPrimary().getVisualBounds().getHeight();
             primaryStage.setFullScreen(true);
         }
-        
     }
 }

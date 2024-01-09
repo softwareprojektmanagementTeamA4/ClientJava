@@ -4,12 +4,14 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -36,6 +38,8 @@ public class App extends Application {
     private Label serverStatus;
     private Label connectedUsersLabel;
     private Label roadWidthLabel;
+    private Label offlineModeLabel = new Label();
+    private Label connectionStatusLabel;
     private TextField usernameField;
     private TextField roadWidthOutput;
     private final int SCREEN_WIDTH = 1280;
@@ -95,6 +99,8 @@ public class App extends Application {
             username = usernameField.getText();
             establishConnection(primaryStage);
         });
+        connectbtn.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
 
         connectBox = new VBox(10);
         connectBox.setAlignment(Pos.CENTER);
@@ -113,6 +119,8 @@ public class App extends Application {
 
         btnStart = new Button();
         btnStart.setText("Start");
+        btnStart.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
 
         btnStart.setOnAction(event -> {
             Road road = new Road();
@@ -121,11 +129,15 @@ public class App extends Application {
 
         btnSettings = new Button();
         btnSettings.setText("Settings");
+        btnSettings.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
 
         btnSettings.setOnAction(event -> switchScene(primaryStage, settingsScene));
 
         btnQuit = new Button();
         btnQuit.setText("Quit");
+        btnQuit.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
 
         btnQuit.setOnAction(event -> {
             Stage stage = (Stage) btnQuit.getScene().getWindow();
@@ -145,10 +157,31 @@ public class App extends Application {
         buttonGameBox.setAlignment(Pos.CENTER); // Zentrieren der Buttons
         playersConnectedBox.setAlignment(Pos.TOP_LEFT);
         playersConnectedBox.getChildren().add(connectedUsersLabel);
+        playersConnectedBox.getChildren().add(offlineModeLabel);
         buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); // Buttons in der Mitte hinzufügen
 
+        connectionStatusLabel = new Label();
+        connectionStatusLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
+
+        Button reconnectButton = new Button("Reconnect");
+        reconnectButton.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
+        reconnectButton.setOnAction(event -> {
+            connectionStatusLabel.setText("Reconnecting...");
+            connectionStatusLabel.setTextFill(Color.BLACK); 
+            connectionStatusLabel.setVisible(true);
+            connectionErrorHandled = false;
+            establishConnection(primaryStage);
+        });
+
+        VBox reconnectBox = new VBox(10); // HBox für Reconnect-Button und Verbindungsstatuslabel
+        reconnectBox.setAlignment(Pos.TOP_RIGHT);
+        reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
+
+
+
         StackPane root = new StackPane();
-        root.getChildren().addAll(playersConnectedBox, buttonGameBox);
+        root.getChildren().addAll(playersConnectedBox, buttonGameBox,reconnectBox);
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         gameScene.getRoot().setStyle("-fx-background-color: blue;");
@@ -162,55 +195,82 @@ public class App extends Application {
         saveConfirmationLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 14px;");
 
         // Road Width
-        roadWidthLabel = new Label("Road Width:");
+        roadWidthLabel = new Label("Road Width");
+        roadWidthLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
         roadWidthSlider = new Slider(500, 3000, 2000);
+        roadWidthSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
+        roadWidthSlider.setMaxWidth(150);
         roadWidthSlider.setBlockIncrement(1);
         roadWidthOutput = new TextField();
         roadWidthOutput.setEditable(false);
-        roadWidthOutput.setPrefWidth(50);
+        roadWidthOutput.setMaxWidth(50);
+        roadWidthOutput.setMaxHeight(10);
+        roadWidthOutput.setStyle(
+                "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         roadWidthSlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> roadWidthOutput.setText(String.valueOf(newValue.intValue())));
 
-        roadWidthLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
-        roadWidthOutput.setStyle("-fx-background-color: white; -fx-font-size: 14px; -fx-font-weight: bold;");
-
         // Camera Height
-        Label cameraHeightLabel = new Label("Camera Height:");
+        Label cameraHeightLabel = new Label("Camera Height");
+        cameraHeightLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
         Slider cameraHeightSlider = new Slider(100, 500, 250); // Wertebereich für die Kamerahöhe
+        cameraHeightSlider.setMaxWidth(150);
+        cameraHeightSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         cameraHeightSlider.setBlockIncrement(1);
         TextField cameraHeightOutput = new TextField();
         cameraHeightOutput.setEditable(false);
-        cameraHeightOutput.setPrefWidth(50);
+        cameraHeightOutput.setMaxWidth(50);
+        cameraHeightOutput.setMaxHeight(10);
+        cameraHeightOutput.setStyle(
+                "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         cameraHeightSlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> cameraHeightOutput.setText(String.valueOf(newValue.intValue())));
 
         // Draw Distance
-        Label drawDistanceLabel = new Label("Draw Distance:");
+        Label drawDistanceLabel = new Label("Draw Distance");
+        drawDistanceLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
         Slider drawDistanceSlider = new Slider(500, 2000, 1000); // Wertebereich für die Sichtweite
+        drawDistanceSlider.setMaxWidth(150);
+        drawDistanceSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         drawDistanceSlider.setBlockIncrement(1);
         TextField drawDistanceOutput = new TextField();
         drawDistanceOutput.setEditable(false);
-        drawDistanceOutput.setPrefWidth(50);
+        drawDistanceOutput.setMaxWidth(50);
+        drawDistanceOutput.setMaxHeight(10);
+        drawDistanceOutput.setStyle(
+                "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         drawDistanceSlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> drawDistanceOutput.setText(String.valueOf(newValue.intValue())));
 
         // Field of View
-        Label fieldOfViewLabel = new Label("Field of View:");
+        Label fieldOfViewLabel = new Label("Field of View");
+        fieldOfViewLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
         Slider fieldOfViewSlider = new Slider(60, 120, 90); // Wertebereich für das Sichtfeld
+        fieldOfViewSlider.setMaxWidth(150);
+        fieldOfViewSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         fieldOfViewSlider.setBlockIncrement(1);
         TextField fieldOfViewOutput = new TextField();
         fieldOfViewOutput.setEditable(false);
-        fieldOfViewOutput.setPrefWidth(50);
+        fieldOfViewOutput.setMaxWidth(50);
+        fieldOfViewOutput.setMaxHeight(10);
+        fieldOfViewOutput.setStyle(
+                "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         fieldOfViewSlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> fieldOfViewOutput.setText(String.valueOf(newValue.intValue())));
 
         // Fog Density
-        Label fogDensityLabel = new Label("Fog Density:");
+        Label fogDensityLabel = new Label("Fog Density");
+        fogDensityLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
         Slider fogDensitySlider = new Slider(0.1, 1.0, 0.5); // Wertebereich für die Nebeldichte
+        fogDensitySlider.setMaxWidth(150);
+        fogDensitySlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         fogDensitySlider.setBlockIncrement(0.1);
         TextField fogDensityOutput = new TextField();
         fogDensityOutput.setEditable(false);
-        fogDensityOutput.setPrefWidth(50);
+        fogDensityOutput.setMaxWidth(50);
+        fogDensityOutput.setMaxHeight(10);
+        fogDensityOutput.setStyle(
+                "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         fogDensitySlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> fogDensityOutput.setText(String.valueOf(newValue.doubleValue())));
 
@@ -218,15 +278,32 @@ public class App extends Application {
         ComboBox<String> lanesDropdown = new ComboBox<>();
         lanesDropdown.getItems().addAll("1 Lane", "2 Lanes", "3 Lanes", "4 Lanes");
         lanesDropdown.setValue("1 Lane"); // Standardwert setzen
+        lanesDropdown.setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
+        lanesDropdown.setMaxHeight(400);
 
         // Resolution Dropdown-Menü
         ComboBox<String> resolutionDropdown = new ComboBox<>();
         resolutionDropdown.getItems().addAll("Low 480x360", "Medium 640x480", "High 1024x768", "Fine 1280x960");
         resolutionDropdown.setValue("High 1024x768"); // Standardwert setzen
+        resolutionDropdown
+                .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
+        resolutionDropdown.setMaxHeight(400);
 
-        // Fullscreen Toggle-Schalter
-        ToggleButton fullscreenToggle = new ToggleButton("Fullscreen");
-        fullscreenToggle.setSelected(false); // Standardwert setzen
+        CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
+        fullscreenCheckBox.setSelected(false); // Standardwert setzen
+        fullscreenCheckBox
+                .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
+        fullscreenCheckBox.setMaxHeight(400);
+
+        fullscreenCheckBox.setOnAction(event -> {
+            if (fullscreenCheckBox.isSelected()) {
+                isFullscreen = true;
+
+            } else {
+                isFullscreen = false;
+
+            }
+        });
 
         // Save and Quit Buttons
         btnSave = new Button("Save");
@@ -239,7 +316,7 @@ public class App extends Application {
             selectedFogDensity = (int) fogDensitySlider.getValue();
             selectedLanes = lanesDropdown.getValue();
             selectedResolution = resolutionDropdown.getValue();
-            isFullscreen = fullscreenToggle.isSelected();
+            isFullscreen = fullscreenCheckBox.isSelected();
 
             System.out.println(getRoadWidthSliderValue());
             System.out.println(getCameraHeightSliderValue());
@@ -254,26 +331,49 @@ public class App extends Application {
             System.out.println(getFullscreenToggleValue());
 
             saveConfirmationLabel.setText("Einstellungen gespeichert!");
+            switchScene(primaryStage, gameScene);
         });
+        btnSave.setStyle(
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 30px; -fx-border-width: 3px;");
+        btnSave.setPrefWidth(200);
+        btnSave.setPrefHeight(50);
+        VBox settingsLayout = new VBox(40);
+        settingsLayout.setAlignment(Pos.CENTER_LEFT);
 
-        btnQuit = new Button("Quit");
-        btnQuit.setOnAction(event -> {
-            if (settingsChanged) {
-                switchScene(primaryStage, gameScene);
-            }
-        });
+        VBox topRightBox = new VBox(10);
+        topRightBox.getChildren().addAll(fullscreenCheckBox, resolutionDropdown, lanesDropdown);
+        topRightBox.setAlignment(Pos.TOP_LEFT);
 
-        // VBox für Layout der Dropdowns und Toggle
-        VBox settingsLayout = new VBox(10);
-        settingsLayout.setAlignment(Pos.CENTER);
-        settingsLayout.getChildren().addAll(
-                roadWidthLabel, roadWidthSlider, roadWidthOutput,
-                cameraHeightLabel, cameraHeightSlider, cameraHeightOutput,
-                drawDistanceLabel, drawDistanceSlider, drawDistanceOutput,
-                fieldOfViewLabel, fieldOfViewSlider, fieldOfViewOutput,
-                fogDensityLabel, fogDensitySlider, fogDensityOutput,
-                lanesDropdown, resolutionDropdown, fullscreenToggle, // Hinzufügen der neuen UI-Elemente
-                btnSave, btnQuit, saveConfirmationLabel);
+        HBox outputAndSliders = new HBox(10);
+        outputAndSliders.setAlignment(Pos.CENTER);
+
+        VBox labels = new VBox(35);
+        labels.getChildren().addAll(
+                roadWidthLabel, cameraHeightLabel, drawDistanceLabel,
+                fieldOfViewLabel, fogDensityLabel);
+        labels.setAlignment(Pos.CENTER_LEFT);
+        labels.setPadding(new Insets(23, 0, 0, 0));
+
+        VBox sliders = new VBox(10);
+        sliders.getChildren().addAll(
+                roadWidthOutput, roadWidthSlider,
+                cameraHeightOutput, cameraHeightSlider,
+                drawDistanceOutput, drawDistanceSlider,
+                fieldOfViewOutput, fieldOfViewSlider,
+                fogDensityOutput, fogDensitySlider);
+        sliders.setAlignment(Pos.CENTER);
+
+        outputAndSliders.getChildren().addAll(sliders);
+
+        HBox lablesandSlider = new HBox(430);
+        lablesandSlider.getChildren().addAll(labels, outputAndSliders);
+        lablesandSlider.setAlignment(Pos.CENTER_LEFT);
+
+        VBox saveConfirmationLayout = new VBox(10);
+        saveConfirmationLayout.setAlignment(Pos.CENTER);
+        saveConfirmationLayout.getChildren().addAll(btnSave, saveConfirmationLabel);
+
+        settingsLayout.getChildren().addAll(topRightBox, lablesandSlider, saveConfirmationLayout);
 
         StackPane root = new StackPane();
         root.getChildren().add(settingsLayout);
@@ -294,10 +394,17 @@ public class App extends Application {
                 @Override
                 public void call(Object... args) {
                     Platform.runLater(() -> {
+                        if(primaryStage.getScene() == connectScene) {
                         serverStatus.setText("Verbunden mit dem Server");
                         isConnected = true;
                         switchScene(primaryStage, gameScene);
                         System.out.println("Verbunden mit dem Server");
+                        } else {
+                            connectionStatusLabel.setText("Connected");
+                            connectionStatusLabel.setTextFill(Color.GREEN);
+                            connectionStatusLabel.setVisible(true); 
+                            System.out.println("Reconnected");
+                        }
                     });
                 }
             });
@@ -307,8 +414,15 @@ public class App extends Application {
                 public void call(Object... args) {
                     if (!connectionErrorHandled) {
                         Platform.runLater(() -> {
-                            serverStatus.setText("Verbindungsfehler: " + args[0]);
-                            setOfflineMode(primaryStage);
+                            if (primaryStage.getScene() == connectScene) {
+                                setOfflineMode(primaryStage);
+                                serverStatus.setText("Verbindungsfehler: " + args[0]);
+                            } else {
+                                connectionStatusLabel.setText("Connection Error");
+                                connectionStatusLabel.setTextFill(Color.RED);
+                                connectionStatusLabel.setVisible(true);
+                                System.out.println("fehlerhaft"); 
+                            }
                         });
                         connectionErrorHandled = true;
                     }
@@ -327,12 +441,30 @@ public class App extends Application {
             // Fehler beim Parsen der URI
             e.printStackTrace();
             Platform.runLater(() -> {
-                serverStatus.setText("Ungültige Serveradresse oder Port");
+                if (primaryStage.getScene() == connectScene) {
+                                setOfflineMode(primaryStage);
+                                serverStatus.setText("Verbindungsfehler: ");
+                            } else {
+                                connectionStatusLabel.setText("Connection Error");
+                                connectionStatusLabel.setTextFill(Color.RED);
+                                connectionStatusLabel.setVisible(true);
+                                System.out.println("fehlerhaft"); 
+                            }
             });
         } catch (Exception e) {
             // Allgemeiner Fehler
             e.printStackTrace();
-            Platform.runLater(() -> serverStatus.setText("Verbindungsfehler: " + e.getMessage()));
+            Platform.runLater(() -> {
+                if (primaryStage.getScene() == connectScene) {
+                                setOfflineMode(primaryStage);
+                                serverStatus.setText("Verbindungsfehler: ");
+                            } else {
+                                connectionStatusLabel.setText("Connection Error");
+                                connectionStatusLabel.setTextFill(Color.RED);
+                                connectionStatusLabel.setVisible(true);
+                                System.out.println("fehlerhaft"); 
+                            }
+            });
         }
     }
 
@@ -362,8 +494,13 @@ public class App extends Application {
     }
 
     private void setOfflineMode(Stage primaryStage) {
+        System.out.println("Offline-Modus");
         isConnected = false;
         serverStatus.setText("Offline-Modus: Keine Verbindung zum Server");
+        offlineModeLabel.setText("Offlinemode");
+        offlineModeLabel.setVisible(true);
+        offlineModeLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 18px;");
+
         switchScene(primaryStage, gameScene);
     }
 
@@ -403,15 +540,15 @@ public class App extends Application {
     public static int getResolutionSliderValueWidth() {
         String selectedResolution = App.selectedResolution;
         int separatorIndex = selectedResolution.indexOf("x");
-        
+
         int widthStartIndex = separatorIndex - 4;
-        
+
         if (Character.isWhitespace(selectedResolution.charAt(widthStartIndex))) {
-            widthStartIndex++; 
+            widthStartIndex++;
         }
-        
-        String widthStr = selectedResolution.substring(widthStartIndex, separatorIndex); 
-        int width = Integer.parseInt(widthStr); 
+
+        String widthStr = selectedResolution.substring(widthStartIndex, separatorIndex);
+        int width = Integer.parseInt(widthStr);
         return width;
     }
 
@@ -425,8 +562,6 @@ public class App extends Application {
     public static boolean getFullscreenToggleValue() {
         return isFullscreen;
     }
-
-
 
     public static void main(String[] args) {
         launch(args);
