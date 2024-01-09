@@ -164,6 +164,8 @@ public class App extends Application {
         connectionStatusLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         Button reconnectButton = new Button("Reconnect");
+        reconnectButton.setPrefWidth(200);
+        reconnectButton.setPrefHeight(40);
         reconnectButton.setStyle(
                 "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
         reconnectButton.setOnAction(event -> {
@@ -175,13 +177,15 @@ public class App extends Application {
         });
 
         VBox reconnectBox = new VBox(10); // HBox für Reconnect-Button und Verbindungsstatuslabel
-        reconnectBox.setAlignment(Pos.TOP_RIGHT);
+        reconnectBox.setAlignment(Pos.CENTER);
         reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
+
+        buttonGameBox.getChildren().add(reconnectBox);
 
 
 
         StackPane root = new StackPane();
-        root.getChildren().addAll(playersConnectedBox, buttonGameBox,reconnectBox);
+        root.getChildren().addAll(playersConnectedBox, buttonGameBox);
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         gameScene.getRoot().setStyle("-fx-background-color: blue;");
@@ -305,7 +309,7 @@ public class App extends Application {
             }
         });
 
-        // Save and Quit Buttons
+        // Save Button
         btnSave = new Button("Save");
         btnSave.setOnAction(event -> {
             settingsChanged = true;
@@ -441,29 +445,13 @@ public class App extends Application {
             // Fehler beim Parsen der URI
             e.printStackTrace();
             Platform.runLater(() -> {
-                if (primaryStage.getScene() == connectScene) {
-                                setOfflineMode(primaryStage);
-                                serverStatus.setText("Verbindungsfehler: ");
-                            } else {
-                                connectionStatusLabel.setText("Connection Error");
-                                connectionStatusLabel.setTextFill(Color.RED);
-                                connectionStatusLabel.setVisible(true);
-                                System.out.println("fehlerhaft"); 
-                            }
+                System.out.println("KA");
             });
         } catch (Exception e) {
             // Allgemeiner Fehler
             e.printStackTrace();
             Platform.runLater(() -> {
-                if (primaryStage.getScene() == connectScene) {
-                                setOfflineMode(primaryStage);
-                                serverStatus.setText("Verbindungsfehler: ");
-                            } else {
-                                connectionStatusLabel.setText("Connection Error");
-                                connectionStatusLabel.setTextFill(Color.RED);
-                                connectionStatusLabel.setVisible(true);
-                                System.out.println("fehlerhaft"); 
-                            }
+                System.out.println("KA");
             });
         }
     }

@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Camera;
 import javafx.scene.Group;
@@ -20,6 +21,9 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -68,6 +72,8 @@ public class Road extends Application{
     private int totalCars = 200;   
     private int currentLapTime = 0;
     private int lastLapTime;
+    private int currentLap = 0;
+    private int maxLap = 3;
 
     private int lanes = 3;
     private double currentRoadWidth = 0;
@@ -98,6 +104,7 @@ public class Road extends Application{
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
+    private ArrayList<String> finishedPlayers = new ArrayList<>();
 
     private Image background = new Image("file:src/main/java/images/background.png");
     private Image sprites = new Image("file:src/main/java/images/sprites.png");
@@ -117,6 +124,7 @@ public class Road extends Application{
     
     private Sprites SPRITES = new Sprites();
 
+
     @Override
     public void start(Stage primaryStage) {
         getSettingsFromApp(primaryStage);
@@ -128,7 +136,7 @@ public class Road extends Application{
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
-        root.getChildren().add(canvas);
+        root.getChildren().addAll(canvas);
         //root.getChildren().add(lanesComboBox);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -711,7 +719,7 @@ public class Road extends Application{
         reset(null);
         while (true) {
             frame(ctx);
-            render(ctx);
+            endScreen(ctx);
         }
     }
 
@@ -845,6 +853,33 @@ public class Road extends Application{
             WIDTH = (int) Screen.getPrimary().getVisualBounds().getWidth();
             HEIGHT = (int) Screen.getPrimary().getVisualBounds().getHeight();
             primaryStage.setFullScreen(true);
+        }
+    }
+
+    public void endScreen(GraphicsContext ctx) {
+        if (currentLap > maxLap) {
+            double canvasWidth = WIDTH;
+            double canvasHeight = HEIGHT;
+    
+            double centerX = canvasWidth / 2;
+            double startY = canvasHeight / 4; // Starte bei einem Viertel der Höhe, um Platz für mehrere Spieler zu haben
+    
+            ctx.setFill(Color.WHITE);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Beispiel für die Schriftgröße und Schriftart
+    
+            for (int i = 0; i < finishedPlayers.size(); i++) {
+                String playerLabel = i + "# " + finishedPlayers.get(i);
+                
+                // Temporärer Text, um die Abmessungen zu berechnen
+                Text text = new Text(playerLabel);
+                text.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Schriftgröße und Schriftart festlegen
+                double textWidth = text.getBoundsInLocal().getWidth();
+                double textHeight = text.getBoundsInLocal().getHeight();
+    
+                double centerY = startY + i * textHeight * 1.5; // 1.5 als Abstand zwischen den Texten
+    
+                ctx.fillText(playerLabel, centerX - textWidth / 2, centerY); // Zentriert um das Zentrum (centerX)
+            }
         }
     }
 }
