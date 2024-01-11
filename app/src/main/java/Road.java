@@ -71,9 +71,10 @@ public class Road extends Application{
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 200;   
     private int currentLapTime = 0;
-    private int lastLapTime;
+    private int lastLapTime = 0;
     private int currentLap = 4;
     private int maxLap = 3;
+    private int place = 1;
 
     private int lanes = 3;
     private double currentRoadWidth = 0;
@@ -295,16 +296,17 @@ public class Road extends Application{
         playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
 
-        /*if (position > playerZ) {
-            if (currentLapTime != 0) { // Überprüft, ob currentLapTime ungleich 0 ist
+        if (position > playerZ) {
+            if (currentLapTime != 0) { 
                 if (startPosition < playerZ) {
                     lastLapTime = currentLapTime;
                     currentLapTime = 0;
+                    currentLap += 1;
                 }
             } else {
                 currentLapTime += delta_time;
             }
-        }*/
+        }
     }
 
     private void updateCars(double dt, Segment playerSegment, double playerW) {
@@ -435,6 +437,7 @@ public class Road extends Application{
             maxy = segment.getP1().getScreen().getY();
             }
             endScreen(ctx);
+            updateHUD(ctx);
             for(int n = (DRAW_DISTANCE - 1); n > 0; n--) {
                 Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
@@ -489,8 +492,8 @@ public class Road extends Application{
     private void addSegment(double curve, double y) {
         int n = segments.size();
         Color rumbleColor = Colors.getRumbleColor(n, RUMBLE_LENGTH);
-        Color roadColor = Colors.getRoadColor();
-        Color grassColor = Colors.getGrassColor();
+        Color roadColor = Colors.getRoadColorDark();
+        Color grassColor = Colors.getGrassColor(n, RUMBLE_LENGTH);
         segments.add(new Segment(
                 n,
                 new Point3D_2(0, lastY(), n * SEGMENT_LENGTH),
@@ -857,34 +860,80 @@ public class Road extends Application{
     }
 
     public void endScreen(GraphicsContext ctx) {
-        String username = "Test";
+        String username = "Player 1";
         if (currentLap > maxLap) {
             if(!finishedPlayers.contains(username)){
             finishedPlayers.add(username);
             }
             double canvasWidth = WIDTH;
             double canvasHeight = HEIGHT;
-    
-            double centerX = canvasWidth / 2;
-            double startY = canvasHeight / 4; // Starte bei einem Viertel der Höhe, um Platz für mehrere Spieler zu haben
+
             ctx.setFill(Color.RED);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-            ctx.fillText("Rangliste", centerX/ 2, startY * 1.5);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 60));
+            ctx.fillText("RACE FINISHED", canvasWidth / 3.5 , canvasHeight / 4);
 
 
             ctx.setFill(Color.WHITE);
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Beispiel für die Schriftgröße und Schriftart
             for (int i = 0; i < finishedPlayers.size(); i++) {
-                String playerLabel = i + "# " + finishedPlayers.get(i);
-                
+                String playerLabel = (i + 1)+ "# " + finishedPlayers.get(i);
+
                 Text text = new Text(playerLabel);
                 text.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Schriftgröße und Schriftart festlegen
                 double textWidth = text.getBoundsInLocal().getWidth();
                 double textHeight = text.getBoundsInLocal().getHeight();
-                
-                double centerY = startY + i * textHeight * 1.5; // 1.5 als Abstand zwischen den Texten)
-                ctx.fillText(playerLabel, centerX - textWidth / 2, centerY); // Zentriert um das Zentrum (centerX)
+
+                ctx.fillText(playerLabel, canvasWidth / 3.5, canvasHeight / 3 + i * textHeight * 1.5);
             }
+        }
+    }
+
+    public void updateHUD(GraphicsContext ctx) {
+        ctx.setFill(Color.rgb(255, 0, 0, 0.3));
+        ctx.fillRect(0, 0, WIDTH, HEIGHT / 8);
+
+        ctx.setFill(Color.BLACK);
+        ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        ctx.fillText((int) speed / 100 + " Km/h", 0, 20);
+        ctx.fillText("Last Lap: " +  lastLapTime + " Sekunden", 0, 45); // #TODO
+        ctx.fillText(currentLap + "/4 Laps", 0, 70);
+    
+        double nitroHud = nitro / 100;
+        double maxNitroHud = maxNitro / 100;
+    
+        double totalBlackBarWidth = (50 * 10) + 20; 
+    
+        ctx.setFill(Color.BLACK);
+        ctx.fillRect(300 - 10, 25 - 10, totalBlackBarWidth, 40 + 20);
+    
+        ctx.setStroke(Color.BLACK);
+        ctx.setLineWidth(5); 
+        ctx.strokeRect(300, 25, (50 * 10) * nitroHud, 40);
+    
+        if (nitroRecharge) {
+            ctx.setFill(Color.rgb(255, 0, 0));
+        } else {
+            ctx.setFill(Color.rgb(0, 0, 255));
+        }
+        ctx.fillRect(300, 25, (50 * 10) * nitroHud, 40);
+    
+        ctx.setFill(Color.BLACK);
+        ctx.setGlobalAlpha(0.5);
+        ctx.fillRect(300, 25, (50 * 10) * maxNitroHud, 40);
+        ctx.setGlobalAlpha(1.0);
+    
+        if (nitroRecharge) {
+            ctx.setFill(Color.rgb(255, 0, 0));
+            ctx.drawImage(nitroBottleEmpty, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
+        } else {
+            ctx.setFill(Color.rgb(77, 187, 230));
+            ctx.drawImage(nitroBottle, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
+        }
+    
+        if (!App.getOfflineMode()) {        //#TODO Richtige Bedingung
+            ctx.setFill(Color.RED);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+            ctx.fillText(place + ".", 0, 95);
         }
     }
 }

@@ -57,7 +57,7 @@ public class App extends Application {
     private Button connectbtn;
     private VBox buttonGameBox;
     private VBox playersConnectedBox;
-    private boolean isConnected = false;
+    private static boolean isConnected = false;
 
     private boolean connectionErrorHandled = false;
     private boolean settingsChanged = false;
@@ -553,5 +553,8 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+    public static boolean getOfflineMode() {
+        return isConnected;
     }
 }
