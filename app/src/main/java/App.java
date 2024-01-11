@@ -2,6 +2,8 @@
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -120,7 +122,7 @@ public class App extends Application {
         btnStart = new Button();
         btnStart.setText("Start");
         btnStart.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px; ");
 
         btnStart.setOnAction(event -> {
             Road road = new Road();
@@ -130,14 +132,14 @@ public class App extends Application {
         btnSettings = new Button();
         btnSettings.setText("Settings");
         btnSettings.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
 
         btnSettings.setOnAction(event -> switchScene(primaryStage, settingsScene));
 
         btnQuit = new Button();
         btnQuit.setText("Quit");
         btnQuit.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
 
         btnQuit.setOnAction(event -> {
             Stage stage = (Stage) btnQuit.getScene().getWindow();
@@ -167,10 +169,10 @@ public class App extends Application {
         reconnectButton.setPrefWidth(200);
         reconnectButton.setPrefHeight(40);
         reconnectButton.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px;");
+                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
         reconnectButton.setOnAction(event -> {
             connectionStatusLabel.setText("Reconnecting...");
-            connectionStatusLabel.setTextFill(Color.BLACK); 
+            connectionStatusLabel.setTextFill(Color.BLACK);
             connectionStatusLabel.setVisible(true);
             connectionErrorHandled = false;
             establishConnection(primaryStage);
@@ -181,8 +183,6 @@ public class App extends Application {
         reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
 
         buttonGameBox.getChildren().add(reconnectBox);
-
-
 
         StackPane root = new StackPane();
         root.getChildren().addAll(playersConnectedBox, buttonGameBox);
@@ -205,7 +205,7 @@ public class App extends Application {
         roadWidthSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         roadWidthSlider.setMaxWidth(150);
         roadWidthSlider.setBlockIncrement(1);
-        roadWidthOutput = new TextField();
+        roadWidthOutput = new TextField("2000");
         roadWidthOutput.setEditable(false);
         roadWidthOutput.setMaxWidth(50);
         roadWidthOutput.setMaxHeight(10);
@@ -217,11 +217,11 @@ public class App extends Application {
         // Camera Height
         Label cameraHeightLabel = new Label("Camera Height");
         cameraHeightLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider cameraHeightSlider = new Slider(100, 500, 250); // Wertebereich für die Kamerahöhe
+        Slider cameraHeightSlider = new Slider(500, 5000, 1000); // Wertebereich für die Kamerahöhe
         cameraHeightSlider.setMaxWidth(150);
         cameraHeightSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         cameraHeightSlider.setBlockIncrement(1);
-        TextField cameraHeightOutput = new TextField();
+        TextField cameraHeightOutput = new TextField("1000");
         cameraHeightOutput.setEditable(false);
         cameraHeightOutput.setMaxWidth(50);
         cameraHeightOutput.setMaxHeight(10);
@@ -233,11 +233,11 @@ public class App extends Application {
         // Draw Distance
         Label drawDistanceLabel = new Label("Draw Distance");
         drawDistanceLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider drawDistanceSlider = new Slider(500, 2000, 1000); // Wertebereich für die Sichtweite
+        Slider drawDistanceSlider = new Slider(100, 500, 300); // Wertebereich für die Sichtweite
         drawDistanceSlider.setMaxWidth(150);
         drawDistanceSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         drawDistanceSlider.setBlockIncrement(1);
-        TextField drawDistanceOutput = new TextField();
+        TextField drawDistanceOutput = new TextField("300");
         drawDistanceOutput.setEditable(false);
         drawDistanceOutput.setMaxWidth(50);
         drawDistanceOutput.setMaxHeight(10);
@@ -249,11 +249,10 @@ public class App extends Application {
         // Field of View
         Label fieldOfViewLabel = new Label("Field of View");
         fieldOfViewLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider fieldOfViewSlider = new Slider(60, 120, 90); // Wertebereich für das Sichtfeld
+        Slider fieldOfViewSlider = new Slider(80, 140, 100); // Wertebereich für das Sichtfeld
         fieldOfViewSlider.setMaxWidth(150);
         fieldOfViewSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
-        fieldOfViewSlider.setBlockIncrement(1);
-        TextField fieldOfViewOutput = new TextField();
+        TextField fieldOfViewOutput = new TextField("100");
         fieldOfViewOutput.setEditable(false);
         fieldOfViewOutput.setMaxWidth(50);
         fieldOfViewOutput.setMaxHeight(10);
@@ -265,18 +264,18 @@ public class App extends Application {
         // Fog Density
         Label fogDensityLabel = new Label("Fog Density");
         fogDensityLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider fogDensitySlider = new Slider(0.1, 1.0, 0.5); // Wertebereich für die Nebeldichte
+        Slider fogDensitySlider = new Slider(0, 50, 5);
         fogDensitySlider.setMaxWidth(150);
         fogDensitySlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
-        fogDensitySlider.setBlockIncrement(0.1);
-        TextField fogDensityOutput = new TextField();
+        fogDensitySlider.setBlockIncrement(1);
+        TextField fogDensityOutput = new TextField("5");
         fogDensityOutput.setEditable(false);
         fogDensityOutput.setMaxWidth(50);
         fogDensityOutput.setMaxHeight(10);
         fogDensityOutput.setStyle(
                 "-fx-background-color: grey; -fx-font-size: 10px; -fx-font-weight: bold; -fx-border-color: black; -fx-border-width: 3px;");
         fogDensitySlider.valueProperty().addListener(
-                (observable, oldValue, newValue) -> fogDensityOutput.setText(String.valueOf(newValue.doubleValue())));
+                (observable, oldValue, newValue) -> fogDensityOutput.setText(String.valueOf(newValue.intValue())));
 
         // Lanes Dropdown-Menü
         ComboBox<String> lanesDropdown = new ComboBox<>();
@@ -398,15 +397,15 @@ public class App extends Application {
                 @Override
                 public void call(Object... args) {
                     Platform.runLater(() -> {
-                        if(primaryStage.getScene() == connectScene) {
-                        serverStatus.setText("Verbunden mit dem Server");
-                        isConnected = true;
-                        switchScene(primaryStage, gameScene);
-                        System.out.println("Verbunden mit dem Server");
+                        if (primaryStage.getScene() == connectScene) {
+                            serverStatus.setText("Verbunden mit dem Server");
+                            isConnected = true;
+                            switchScene(primaryStage, gameScene);
+                            System.out.println("Verbunden mit dem Server");
                         } else {
                             connectionStatusLabel.setText("Connected");
                             connectionStatusLabel.setTextFill(Color.GREEN);
-                            connectionStatusLabel.setVisible(true); 
+                            connectionStatusLabel.setVisible(true);
                             System.out.println("Reconnected");
                         }
                     });
@@ -425,7 +424,7 @@ public class App extends Application {
                                 connectionStatusLabel.setText("Connection Error");
                                 connectionStatusLabel.setTextFill(Color.RED);
                                 connectionStatusLabel.setVisible(true);
-                                System.out.println("fehlerhaft"); 
+                                System.out.println("fehlerhaft");
                             }
                         });
                         connectionErrorHandled = true;
@@ -554,6 +553,7 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
     public static boolean getOfflineMode() {
         return isConnected;
     }

@@ -7,7 +7,6 @@ public class Render {
     private static Sprites SPRITES = new Sprites();
 
     Color roadColor = Colors.getRoadColorDark();
-    Color grassColor = Colors.getGrassColorDark();
 
     public static final Background HILLS = new Background(5, 5, 1280, 480);
     public static final Background SKY = new Background(5, 495, 1280, 480);
@@ -61,8 +60,14 @@ public class Render {
         double l1 = laneMarkerWidth(w1, lanes);
         double l2 = laneMarkerWidth(w2, lanes);
         double lanew1, lanew2, lanex1, lanex2, lane;
+        
 
-        ctx.setFill(grassColor);
+        if (color == Colors.RUMBLE_DARK) {
+            ctx.setFill(Colors.GRASS_DARK);
+        } else {
+            ctx.setFill(Colors.GRASS_LIGHT);
+        }
+        
         ctx.fillRect(0, y2, width, y1 - y2);
 
         
@@ -106,7 +111,7 @@ public class Render {
     private void fog(GraphicsContext ctx, double x, double y, double width, double height, double fog) {
         if (fog < 1) {
             ctx.setGlobalAlpha(1 - fog);
-            ctx.setFill(Colors.FOG); // Ändern Sie dies entsprechend Ihrer Farbdefinition
+            ctx.setFill(Colors.getFogColor()); // Ändern Sie dies entsprechend Ihrer Farbdefinition
             ctx.fillRect(x, y, width, height);
             ctx.setGlobalAlpha(1);
         }

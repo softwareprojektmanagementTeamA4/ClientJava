@@ -492,8 +492,6 @@ public class Road extends Application{
     private void addSegment(double curve, double y) {
         int n = segments.size();
         Color rumbleColor = Colors.getRumbleColor(n, RUMBLE_LENGTH);
-        Color roadColor = Colors.getRoadColorDark();
-        Color grassColor = Colors.getGrassColor(n, RUMBLE_LENGTH);
         segments.add(new Segment(
                 n,
                 new Point3D_2(0, lastY(), n * SEGMENT_LENGTH),
@@ -639,10 +637,10 @@ public class Road extends Application{
         resetSprites();
         resetCars();
         
-        segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.ROAD_START);
-        segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.ROAD_START);
+        segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.getRoadStart());
+        segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.getRoadStart());
         for (int n = 0; n < RUMBLE_LENGTH; n++) {
-            segments.get(segments.size() - 1 - n).setColor(Colors.ROAD_FINISH);
+            segments.get(segments.size() - 1 - n).setColor(Colors.getRoadFinish());
         }
         TRACK_LENGTH = segments.size() * SEGMENT_LENGTH;
     }
@@ -930,7 +928,7 @@ public class Road extends Application{
             ctx.drawImage(nitroBottle, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
         }
     
-        if (!App.getOfflineMode()) {        //#TODO Richtige Bedingung
+        if (App.getOfflineMode()) {
             ctx.setFill(Color.RED);
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24));
             ctx.fillText(place + ".", 0, 95);
