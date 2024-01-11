@@ -102,6 +102,7 @@ public class Road extends Application{
     private double maxNitro = 100;
     private boolean nitroRecharge = false;
     private boolean nitroActive = false;
+    private boolean fullscreen = false;
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
@@ -130,7 +131,7 @@ public class Road extends Application{
     public void start(Stage primaryStage) {
         getSettingsFromApp(primaryStage);
 
-        primaryStage.setTitle("Javascript Racer - v1 (straight)");
+        primaryStage.setTitle("Racegame");
         primaryStage.setResizable(false);
 
         StackPane root = new StackPane();
@@ -138,7 +139,6 @@ public class Road extends Application{
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
         root.getChildren().addAll(canvas);
-        //root.getChildren().add(lanesComboBox);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
@@ -192,16 +192,15 @@ public class Road extends Application{
                     break;
             }
         });
-
-        // ImageLoader
-        //images = imageLoader.loadImagesFromFolder("src/main/java/images/sprites", images);
-        //images = imageLoader.loadImagesFromFolder("src/main/java/images", images);
-
-        //JavaFX Timeline = free form animation defined by KeyFrames and their duration 
 		Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1.0 / FPS), e -> gameLoop(ctx)));
-		//number of cycles in animation INDEFINITE = repeat indefinitely
+
 		tl.setCycleCount(Timeline.INDEFINITE);
         primaryStage.setScene(scene);
+        if(fullscreen) {
+            primaryStage.setFullScreen(true);
+            root.prefWidthProperty().bind(primaryStage.widthProperty());
+            root.prefHeightProperty().bind(primaryStage.heightProperty());
+        }
         primaryStage.show();
         addEventHandlers();
         tl.play();
@@ -840,7 +839,7 @@ public class Road extends Application{
         stage.setWidth(width);
         stage.setHeight(height);
     }
-    private void getSettingsFromApp(Stage primaryStage){
+    private void getSettingsFromApp(Stage primaryStage){ //#TODO 
         ROAD_WIDTH = App.getRoadWidthSliderValue();
         LANES = App.getLanesSliderValue();
         lanes = LANES;
@@ -851,10 +850,8 @@ public class Road extends Application{
         WIDTH = App.getResolutionSliderValueWidth();
         HEIGHT = App.getResolutionSliderValueHeight();
         if(App.getFullscreenToggleValue()){
-            WIDTH = (int) Screen.getPrimary().getVisualBounds().getWidth();
-            HEIGHT = (int) Screen.getPrimary().getVisualBounds().getHeight();
-            primaryStage.setFullScreen(true);
-        }
+            fullscreen = true;
+                }
     }
 
     public void endScreen(GraphicsContext ctx) {
@@ -928,7 +925,7 @@ public class Road extends Application{
             ctx.drawImage(nitroBottle, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
         }
     
-        if (App.getOfflineMode()) {        //#TODO Richtige Bedingung
+        if (App.getOfflineMode()) { 
             ctx.setFill(Color.RED);
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24));
             ctx.fillText(place + ".", 0, 95);
