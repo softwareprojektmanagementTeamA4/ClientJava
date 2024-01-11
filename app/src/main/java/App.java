@@ -79,7 +79,7 @@ public class App extends Application {
         createConnectSzene(primaryStage);
         createGameSzene(primaryStage);
         createSettingsScene(primaryStage);
-        primaryStage.setTitle("Mulitplayer Game Racing");
+        primaryStage.setTitle("RaceGame");
         primaryStage.setScene(connectScene);
         primaryStage.show();
 

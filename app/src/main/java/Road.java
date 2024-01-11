@@ -911,7 +911,7 @@ public class Road extends Application{
         if (nitroRecharge) {
             ctx.setFill(Color.rgb(255, 0, 0));
         } else {
-            ctx.setFill(Color.rgb(0, 0, 255));
+            ctx.setFill(Color.rgb(77, 187, 255));
         }
         ctx.fillRect(300, 25, (50 * 10) * nitroHud, 40);
     
@@ -928,7 +928,7 @@ public class Road extends Application{
             ctx.drawImage(nitroBottle, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
         }
     
-        if (App.getOfflineMode()) {
+        if (App.getOfflineMode()) {        //#TODO Richtige Bedingung
             ctx.setFill(Color.RED);
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24));
             ctx.fillText(place + ".", 0, 95);
