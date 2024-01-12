@@ -198,8 +198,8 @@ public class Road extends Application{
         primaryStage.setScene(scene);
         if(fullscreen) {
             primaryStage.setFullScreen(true);
-            root.prefWidthProperty().bind(primaryStage.widthProperty());
-            root.prefHeightProperty().bind(primaryStage.heightProperty());
+            root.maxWidthProperty().bind(primaryStage.widthProperty());
+            root.maxHeightProperty().bind(primaryStage.heightProperty());
         }
         primaryStage.show();
         addEventHandlers();
