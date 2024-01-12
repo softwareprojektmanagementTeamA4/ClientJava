@@ -1,6 +1,8 @@
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color; 
+import javafx.scene.paint.Color;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Render {
     Util util = new Util();
@@ -170,7 +172,8 @@ public class Render {
         double updown,
         boolean nitro
 ) {
-    double bounce = (1.5 * Math.random() * speedPercent * resolution) * util.randomChoice(new int[]{-1, 1});
+    List<Integer> intList = new ArrayList<>(List.of(-1, 1));
+    double bounce = (1.5 * Math.random() * speedPercent * resolution) * util.randomChoice(intList);
     
     Sprite playerSprite;
 

@@ -8,6 +8,7 @@ import java.util.Map;
 import javafx.scene.paint.Color;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import java.util.List;
 //TODO: project(World, Scale) 
 
 public class Util {
@@ -73,13 +74,17 @@ public class Util {
     }
 
     
-    public int randomInt(int low, int high) {
-        return random.nextInt(high - low + 1) + low;
+    public static int randomInt(int low, int high) {
+        return (int) Math.round(interpolate(low, high, random.nextFloat()));
     }
 
-    public int randomChoice(int[] options) {
-        int randomIndex = randomInt(0, options.length - 1);
-        return options[randomIndex];
+    public static <T> T randomChoice(List<T> options) {
+        if (options == null || options.isEmpty()) {
+            throw new IllegalArgumentException("Die Optionen dürfen nicht null oder leer sein.");
+        }
+
+        int randomIndex = randomInt(0, options.size() - 1);
+        return options.get(randomIndex);
     }
 
     public double randomChoiceDouble(double[] options) {

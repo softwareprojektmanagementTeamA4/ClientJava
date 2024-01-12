@@ -121,7 +121,6 @@ public class Road extends Application{
 
     private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
 
-    private ComboBox<String> resolutionComboBox = createResolutionComboBox();;
     private ComboBox<String> lanesComboBox = new ComboBox<>();
     
     private Sprites SPRITES = new Sprites();
@@ -202,7 +201,6 @@ public class Road extends Application{
             root.maxHeightProperty().bind(primaryStage.heightProperty());
         }
         primaryStage.show();
-        addEventHandlers();
         tl.play();
     }
 
@@ -441,16 +439,16 @@ public class Road extends Application{
                 Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
                 for(int i = 0; i < segment.getCars().size(); i++) {
-                    car = segment.getCar(i);
+                    car = segment.getCars().get(i);
                     sprite = car.getSprite();
                     spriteScale = util.interpolate(segment.getP1().getScreen().getScale(), segment.getP2().getScreen().getScale(), car.getPercent());
                     spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(), car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(), car.getPercent());
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites,  car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip()); //#TODO ist sprites richtig?
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites,  car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip());
                 }
 
                 for(int i = 0; i < segment.getSprites().size(); i++) {
-                    sprite = segment.getSprite(i);
+                    sprite = segment.getSprites().get(i);
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = segment.getP1().getScreen().getY();
@@ -504,9 +502,8 @@ public class Road extends Application{
 
     private void addSprite(int n, Sprite sprite, double offset) { // #TODO warum funktioniert das mit setSource nicht?? bzw muss ich das anders machen?
         sprite.setOffset(offset);
-        //sprite.setSource(sprite);
-        //segments.get(n).getSprites().add(new Sprite(offset, sprite));
         segments.get(n).getSprites().add(sprite);
+        //segments.get(n).getSprites().add(new Sprite(offset, sprite));
       }
 
     private void addRoad(int enter, int hold, int leave, int curve, int d){
@@ -645,9 +642,9 @@ public class Road extends Application{
     }
 
     public void resetSprites() {
-        
-        addSprite(20,  SPRITES.BILLBOARD01, -1);
-        addSprite(40,  SPRITES.BILLBOARD06, -1);
+        List<Integer> intList = new ArrayList<>(List.of(1, -1));
+        addSprite(50,  SPRITES.BILLBOARD07, -1);
+        /*addSprite(40,  SPRITES.BILLBOARD06, -1);
         addSprite(60,  SPRITES.BILLBOARD08, -1);
         addSprite(80,  SPRITES.BILLBOARD09, -1);
         addSprite(100, SPRITES.BILLBOARD01, -1);
@@ -667,31 +664,25 @@ public class Road extends Application{
             addSprite(n, SPRITES.PALM_TREE,   1 + Math.random() * 2);
         }
 
-        for (int n = 250; n < 1000; n += 50) {
+        for (int n = 250; n < 1000; n += 5) {
             addSprite(n, SPRITES.COLUMN , 1.1);
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE1, -1 - (Math.random() * 2));
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE2, -1 - (Math.random() * 2));
         }
 
-        for (int n = 200; n < segments.size(); n += 30) {
-            int choice = util.randomChoice(new int[]{0,12});
-            addSprite(n, SPRITES.getPlant(choice), util.randomChoice(new int[]{1,-1}) * (2 + Math.random() * 5));
+        for (int n = 200; n < segments.size(); n += 3) {
+            addSprite(n, util.randomChoice(SPRITES.PLANTS), util.randomChoice(intList) * (2 + Math.random() * 5));
         }
 
-        double side;
-        double offset;
-        Sprite sprite;
-        for (int n = 1000; n < (segments.size() - 50); n += 500) {
-            side = util.randomChoice(new int[]{1, -1});
-            int billboardChoice = util.randomChoice(new int[]{0,8});
-            addSprite(n + util.randomInt(0, 50), SPRITES.getBillboard(billboardChoice), -side);
+        for (int n = 1000; n < (segments.size() - 50); n += 100) {
+            double side = util.randomChoice(intList); // # TODO könnte auch int sein
+            addSprite(n + util.randomInt(0, 50), util.randomChoice(SPRITES.BILLBOARDS), -side);
             for (int i = 0; i < 20; i++) {
-                int plantChoice = util.randomChoice(new int[]{0,12});
-                sprite = SPRITES.getPlant(plantChoice);
-                offset = side * (1.5 + Math.random());
+                Sprite sprite = util.randomChoice(SPRITES.PLANTS);
+                double offset = side * (1.5 + Math.random());
                 addSprite(n + util.randomInt(0,50), sprite, offset);
             }
-        }
+        }*/
 
 
     }
@@ -699,10 +690,11 @@ public class Road extends Application{
     public void resetCars() {
         cars.clear();
         for (int n = 0; n < totalCars; n++) {
-            double offset = Math.random() * util.randomChoiceDouble(new double[]{-0.8, 0.8});
+            List<Double> choicesList = new ArrayList<>(Arrays.asList(-0.8, 0.8));
+            double offset = Math.random() * util.randomChoice(choicesList);
             double z = Math.floor(Math.random() * segments.size()) * SEGMENT_LENGTH;
-            int choice = util.randomChoice(new int[]{0, 5});
-            Sprite sprite = SPRITES.getCar(choice);
+            Sprite sprite = util.randomChoice(SPRITES.CARS);
+            System.out.println(sprite);
             double speed = MAX_SPEED / 4 + Math.random() * MAX_SPEED / (sprite == SPRITES.SEMI ? 4 : 2);
             Car car = new Car(offset, z, sprite, speed);
             Segment segment = findSegment(car.getZ());
@@ -719,7 +711,6 @@ public class Road extends Application{
         while (true) {
             frame(ctx);
             endScreen(ctx);
-            System.out.println("GameLoop");
         }
     }
 
@@ -758,87 +749,7 @@ public class Road extends Application{
     //=========================================================================
     // TWEAK UI HANDLERS
     //=========================================================================
-    private void addEventHandlers() {
-        // Resolution EventHandler
-        resolutionComboBox.setOnAction(event -> {
-            int w, h;
-            double ratio;
-            switch (resolutionComboBox.getValue()) {
-                case "fine":
-                    w = 1280; h = 960; ratio = (double) w / WIDTH;
-                    break;
-                case "high":
-                    w = 1024; h = 768; ratio = (double) w / WIDTH;
-                    break;
-                case "medium":
-                    w = 640; h = 480; ratio = (double) w / WIDTH;
-                    break;
-                case "low":
-                    w = 480; h = 360; ratio = (double) w / WIDTH;
-                    break;
-                default:
-                    w = WIDTH; h = HEIGHT; ratio = 1.0;
-            }
-            reset(new HashMap<String, Integer>() {{
-                put("width", w);
-                put("height", h);
-            }});
-            event.consume();
-        });
 
-        lanesComboBox.setOnAction(event -> {
-            reset(new HashMap<String, Integer>() {{
-                put("lanes", Integer.parseInt(lanesComboBox.getValue())); // Die Anzahl der Fahrspuren aktualisieren
-            }});
-        });
-
-        refreshTweakUI();
-    }
-
-    private void refreshTweakUI() {
-        lanes = LANES;
-        currentRoadWidth = ROAD_WIDTH;
-        currentCameraHeight = CAMERA_HEIGHT;
-        currentDrawDistance = DRAW_DISTANCE;
-        currentFieldOfView = FIELD_OF_VIEW;
-        currentFogDensity = FOG_DENSITY;
-    }
-
-     private ComboBox<String> createResolutionComboBox() {
-        ComboBox<String> resolutionComboBox = new ComboBox<>();
-        resolutionComboBox.getItems().addAll("fine", "high", "medium", "low");
-        resolutionComboBox.setOnAction(event -> {
-            int w, h;
-            switch (resolutionComboBox.getValue()) {
-                case "fine":
-                    w = 1280; h = 960;
-                    break;
-                case "high":
-                    w = 1024; h = 768;
-                    break;
-                case "medium":
-                    w = 640; h = 480;
-                    break;
-                case "low":
-                    w = 480; h = 360;
-                    break;
-                default:
-                    w = WIDTH; h = HEIGHT;
-            }
-            reset(new HashMap<String, Integer>() {{
-                put("width", w);
-                put("height", h);
-            }});
-            event.consume();
-        });
-        return resolutionComboBox;
-    }
-
-    private void changeWindowSize(int width, int height) {
-        Stage stage = (Stage) resolutionComboBox.getScene().getWindow();
-        stage.setWidth(width);
-        stage.setHeight(height);
-    }
     private void getSettingsFromApp(Stage primaryStage){ //#TODO 
         ROAD_WIDTH = App.getRoadWidthSliderValue();
         LANES = App.getLanesSliderValue();
