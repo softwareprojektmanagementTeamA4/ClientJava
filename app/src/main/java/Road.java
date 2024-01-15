@@ -665,22 +665,22 @@ public class Road extends Application{
         addSprite(segments.size() - 25, SPRITES.BILLBOARD06,  1.2);
 
 
-        for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
+        /*for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
             addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
             addSprite(n, SPRITES.PALM_TREE,   1 + Math.random() * 2);
-        }
+        }*/
 
-        for (int n = 250; n < 1000; n += 5) {
+        for (int n = 250; n < 1000; n += 50) {
             addSprite(n, SPRITES.COLUMN , 1.1);
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE1, -1 - (Math.random() * 2));
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE2, -1 - (Math.random() * 2));
         }
 
-        for (int n = 200; n < segments.size(); n += 3) {
+        for (int n = 200; n < segments.size(); n += 30) {
             addSprite(n, util.randomChoice(SPRITES.PLANTS), util.randomChoice(intList) * (2 + Math.random() * 5));
         }
 
-        for (int n = 1000; n < (segments.size() - 50); n += 100) {
+        for (int n = 1000; n < (segments.size() - 50); n += 500) {
             double side = util.randomChoice(intList);
             addSprite(n + util.randomInt(0, 50), util.randomChoice(SPRITES.BILLBOARDS), -side);
             for (int i = 0; i < 20; i++) {
