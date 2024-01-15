@@ -191,9 +191,15 @@ public class Road extends Application{
                     break;
             }
         });
-		Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1.0 / FPS), e -> gameLoop(ctx)));
-
-		tl.setCycleCount(Timeline.INDEFINITE);
+        reset();
+        AnimationTimer gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                frame(ctx);
+            }
+        };
+        gameLoop.start();
+		
         primaryStage.setScene(scene);
         if(fullscreen) {
             primaryStage.setFullScreen(true);
@@ -201,7 +207,7 @@ public class Road extends Application{
             root.maxHeightProperty().bind(primaryStage.heightProperty());
         }
         primaryStage.show();
-        tl.play();
+
     }
 
     //=========================================================================
@@ -269,7 +275,7 @@ public class Road extends Application{
             
             for (int n = 0; n < playerSegment.getSprites().size(); n++) {
                 sprite = playerSegment.getSprites().get(n);
-                spriteW = sprite.getSource().getW() * SPRITES.SCALE;
+                spriteW = sprite.getW() * SPRITES.SCALE;
                 if (util.overlap(playerX, playerW, sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1), spriteW, Double.NaN)) { // 0 richtig?
                     speed = MAX_SPEED / 5;
                     position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); // stop in front of sprite (at front of segment)
@@ -452,7 +458,7 @@ public class Road extends Application{
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = segment.getP1().getScreen().getY();
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite, spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
                 }
 
                 if (segment == playerSegment) {
@@ -644,7 +650,7 @@ public class Road extends Application{
     public void resetSprites() {
         List<Integer> intList = new ArrayList<>(List.of(1, -1));
         addSprite(50,  SPRITES.BILLBOARD07, -1);
-        /*addSprite(40,  SPRITES.BILLBOARD06, -1);
+        addSprite(40,  SPRITES.BILLBOARD06, -1);
         addSprite(60,  SPRITES.BILLBOARD08, -1);
         addSprite(80,  SPRITES.BILLBOARD09, -1);
         addSprite(100, SPRITES.BILLBOARD01, -1);
@@ -682,8 +688,7 @@ public class Road extends Application{
                 double offset = side * (1.5 + Math.random());
                 addSprite(n + util.randomInt(0,50), sprite, offset);
             }
-        }*/
-
+        }
 
     }
 
@@ -707,33 +712,20 @@ public class Road extends Application{
     // THE GAME LOOP
     //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
     public void gameLoop(GraphicsContext ctx) {
-        reset(null);
         while (true) {
             frame(ctx);
             endScreen(ctx);
         }
     }
 
-    private void reset(HashMap<String, Integer> options) { //Map<String, Object> options
-        options = (options != null) ? options : new HashMap<>();
-        int width = util.toInt(options.get("width"), WIDTH);
-        int height = util.toInt(options.get("height"), HEIGHT);
-        int lanes = util.toInt(options.get("lanes"), LANES);
-        int roadWidth = util.toInt(options.get("roadWidth"), ROAD_WIDTH);
-        int cameraHeight = util.toInt(options.get("cameraHeight"), CAMERA_HEIGHT);
-        int drawDistance = util.toInt(options.get("drawDistance"), DRAW_DISTANCE);
-        int fogDensity = util.toInt(options.get("fogDensity"), FOG_DENSITY);
-        int fieldOfView = util.toInt(options.get("fieldOfView"), FIELD_OF_VIEW);
-        int segmentLength = util.toInt(options.get("segmentLength"), SEGMENT_LENGTH);
-        int rumbleLength = util.toInt(options.get("rumbleLength"), RUMBLE_LENGTH);
-    
+    private void reset() {
+        
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
 
-        if (segments.isEmpty() || options.containsKey("segmentLength") || options.containsKey("rumbleLength")){
-            resetRoad(); // only rebuild road when necessary
-        }
+        resetRoad(); // only rebuild road when necessary
+
     }
 
     public void frame(GraphicsContext ctx) {
