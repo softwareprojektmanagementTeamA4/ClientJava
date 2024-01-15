@@ -185,19 +185,19 @@ public class Render {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;*/
 
     if (steer < 0) {
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
+        playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT : SPRITES.PLAYER_1_LEFT;
         if (nitro) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT_NITRO : SPRITES.PLAYER_LEFT_NITRO;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT_NITRO : SPRITES.PLAYER_1_LEFT_NITRO;
         }
     } else if (steer > 0) {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
         if (nitro) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_RIGHT_NITRO;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_1_RIGHT_NITRO;
         }
     } else {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
         if (nitro) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_STRAIGHT_NITRO;
+            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_1_STRAIGHT_NITRO;
         }
     }
 

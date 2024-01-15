@@ -34,6 +34,8 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 
 public class App extends Application {
     private Socket socket;
@@ -300,11 +302,19 @@ public class App extends Application {
 
         fullscreenCheckBox.setOnAction(event -> {
             if (fullscreenCheckBox.isSelected()) {
-                isFullscreen = true;
+                // Find the maximum resolution with a 4:3 aspect ratio
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                double screenWidth = screenSize.getWidth();
+                double screenHeight = screenSize.getHeight();
+                double aspectRatio = 4.0 / 3.0;
+                double maxResolutionWidth = Math.min(screenWidth, screenHeight * aspectRatio);
+                double maxResolutionHeight = maxResolutionWidth / aspectRatio;
 
+                // Set the resolution to the maximum width and height
+                resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
+                isFullscreen = true;
             } else {
                 isFullscreen = false;
-
             }
         });
 

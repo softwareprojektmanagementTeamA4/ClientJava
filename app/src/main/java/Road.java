@@ -196,6 +196,8 @@ public class Road extends Application{
             @Override
             public void handle(long now) {
                 frame(ctx);
+                endScreen(ctx);
+                updateHUD(ctx);
             }
         };
         gameLoop.start();
@@ -439,8 +441,6 @@ public class Road extends Application{
             
             maxy = segment.getP1().getScreen().getY();
             }
-            endScreen(ctx);
-            updateHUD(ctx);
             for(int n = (DRAW_DISTANCE - 1); n > 0; n--) {
                 Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
@@ -681,7 +681,7 @@ public class Road extends Application{
         }
 
         for (int n = 1000; n < (segments.size() - 50); n += 100) {
-            double side = util.randomChoice(intList); // # TODO könnte auch int sein
+            double side = util.randomChoice(intList);
             addSprite(n + util.randomInt(0, 50), util.randomChoice(SPRITES.BILLBOARDS), -side);
             for (int i = 0; i < 20; i++) {
                 Sprite sprite = util.randomChoice(SPRITES.PLANTS);
@@ -711,21 +711,12 @@ public class Road extends Application{
     //=========================================================================
     // THE GAME LOOP
     //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
-    public void gameLoop(GraphicsContext ctx) {
-        while (true) {
-            frame(ctx);
-            endScreen(ctx);
-        }
-    }
 
     private void reset() {
-        
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
-
-        resetRoad(); // only rebuild road when necessary
-
+        resetRoad();
     }
 
     public void frame(GraphicsContext ctx) {
