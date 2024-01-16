@@ -19,10 +19,6 @@ public class Sprite {
         }
 
         public Sprite(double offset, Sprite source) {
-            //this.x = source.x;
-            //this.y = source.y;
-            //this.w = source.w;
-            //this.h = source.h;
             this.offset = offset;
             this.source = source;
         }

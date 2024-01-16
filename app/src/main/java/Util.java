@@ -116,8 +116,8 @@ public class Util {
     }
 
 
-    public boolean overlap(double x1, double w1, double x2, double w2, double percent) {
-        double half = (percent != 0 ? percent : 1) / 2;
+    public static boolean overlap(double x1, double w1, double x2, double w2, double percent) {
+        double half = (percent != 0) ? percent / 2 : 0.5;
         double min1 = x1 - (w1 * half);
         double max1 = x1 + (w1 * half);
         double min2 = x2 - (w2 * half);

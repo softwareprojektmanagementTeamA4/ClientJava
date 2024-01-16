@@ -72,7 +72,7 @@ public class Road extends Application{
     private int totalCars = 200;   
     private int currentLapTime = 0;
     private int lastLapTime = 0;
-    private int currentLap = 4;
+    private int currentLap = 0;
     private int maxLap = 3;
     private int place = 1;
 
@@ -195,6 +195,7 @@ public class Road extends Application{
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                
                 frame(ctx);
                 endScreen(ctx);
                 updateHUD(ctx);
@@ -277,10 +278,11 @@ public class Road extends Application{
             
             for (int n = 0; n < playerSegment.getSprites().size(); n++) {
                 sprite = playerSegment.getSprites().get(n);
-                spriteW = sprite.getW() * SPRITES.SCALE;
-                if (util.overlap(playerX, playerW, sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1), spriteW, Double.NaN)) { // 0 richtig?
+                spriteW = sprite.getSource().getW() * SPRITES.SCALE;
+                double spriteX = sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1);
+                if (util.overlap(playerX, playerW, spriteX, spriteW, 0)) { // 0 richtig?
                     speed = MAX_SPEED / 5;
-                    position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); // stop in front of sprite (at front of segment)
+                    position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); 
                     break;
                 }
             }
@@ -462,7 +464,7 @@ public class Road extends Application{
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = segment.getP1().getScreen().getY();
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite, spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
                 }
 
                 if (segment == playerSegment) {
@@ -510,10 +512,8 @@ public class Road extends Application{
         ));
     }
 
-    private void addSprite(int n, Sprite sprite, double offset) { // #TODO warum funktioniert das mit setSource nicht?? bzw muss ich das anders machen?
-        sprite.setOffset(offset);
-        segments.get(n).getSprites().add(sprite);
-        //segments.get(n).getSprites().add(new Sprite(offset, sprite));
+    private void addSprite(int n, Sprite sprite, double offset) {
+        segments.get(n).getSprites().add(new Sprite(offset, sprite));
       }
 
     private void addRoad(int enter, int hold, int leave, int curve, int d){
@@ -727,7 +727,7 @@ public class Road extends Application{
         long timeNow = System.currentTimeMillis();
         double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
-        double step = 1.0 / FPS; 
+        double step = 1.0 / FPS/2; 
         update(step);
         render(ctx);
         lastTime = timeNow;
