@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -77,18 +78,20 @@ public class Render {
         polygon(ctx, x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color);
         polygon(ctx, x1 - w1, y1, x1 + w1, y1, x2 + w2, y2, x2 - w2, y2, roadColor);
 
+
         if (color.equals(Color.WHITE)) {
             lanew1 = w1 * 2 / lanes;
             lanew2 = w2 * 2 / lanes;
             lanex1 = x1 - w1 + lanew1;
             lanex2 = x2 - w2 + lanew2;
-
-            for (lane = 1; lane < lanes; lanex1 += lanew1, lanex2 += lanew2, lane++) {
+            for (lane = 1; lane < lanes; lane++) {
                 polygon(ctx, lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, color);
+                lanex1 += lanew1;
+                lanex2 += lanew2; 
             }
+            
         }
-
-        fog(ctx, 0, y1, width, y2 - y1, fog);
+       fog(ctx, 0, y1, width, y2 - y1, fog);
     }
 
     private double rumbleWidth(double projectedRoadWidth, double lanes) {

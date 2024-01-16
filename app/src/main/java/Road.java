@@ -76,7 +76,6 @@ public class Road extends Application{
     private int maxLap = 3;
     private int place = 1;
 
-    private int lanes = 3;
     private double currentRoadWidth = 0;
     private double currentCameraHeight = 0;
     private double currentDrawDistance = 0;
@@ -304,14 +303,14 @@ public class Road extends Application{
         speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
 
         if (position > playerZ) {
-            if (currentLapTime != 0) { 
-                if (startPosition < playerZ) {
+            if (currentLapTime != 0 && (startPosition < playerZ)) { 
                     lastLapTime = currentLapTime;
                     currentLapTime = 0;
                     currentLap += 1;
+                    System.out.println("CurrentLap: "+currentLap);
                 }
-            } else {
-                currentLapTime += delta_time;
+            else {
+                currentLapTime += globalDeltaTime;
             }
         }
     }
@@ -740,7 +739,6 @@ public class Road extends Application{
     private void getSettingsFromApp(Stage primaryStage){ //#TODO 
         ROAD_WIDTH = App.getRoadWidthSliderValue();
         LANES = App.getLanesSliderValue();
-        lanes = LANES;
         CAMERA_HEIGHT = App.getCameraHeightSliderValue();
         DRAW_DISTANCE = App.getDrawDistanceSliderValue();
         FIELD_OF_VIEW = App.getFieldOfViewSliderValue();
@@ -788,7 +786,8 @@ public class Road extends Application{
         ctx.setFill(Color.BLACK);
         ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         ctx.fillText((int) speed / 100 + " Km/h", 0, 20);
-        ctx.fillText("Last Lap: " +  lastLapTime + " Sekunden", 0, 45); // #TODO
+        ctx.fillText("Last Lap: " +  (lastLapTime/1000) + " Sekunden", 0, 45); // #TODO
+        System.out.println(currentLap);
         ctx.fillText(currentLap + "/4 Laps", 0, 70);
     
         double nitroHud = nitro / 100;

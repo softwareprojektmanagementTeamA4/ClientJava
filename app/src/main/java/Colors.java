@@ -8,7 +8,7 @@ public class Colors {
     private static final Color ROAD_LIGHT = Color.web("#6B6B6B");
     static final Color GRASS_LIGHT = Color.web("#10AA10");
     private static final Color RUMBLE_LIGHT = Color.web("#555555");
-    private static final Color LANE_LIGHT = Color.web("#CCCCCC");
+    static final Color LANE_LIGHT = Color.web("#CCCCCC");
 
     private static final Color ROAD_DARK = Color.web("#6B6B6B");
     static final Color GRASS_DARK = Color.web("#009A00");
