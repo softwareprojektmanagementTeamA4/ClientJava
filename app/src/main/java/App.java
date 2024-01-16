@@ -28,6 +28,7 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -80,6 +81,7 @@ public class App extends Application {
     private static boolean isFullscreen = false;
 
     private String clientID;
+    private String hostID;
     private Map<String, String> clientdIDs = new HashMap<String, String>();
     private boolean isHost = false;
 
@@ -135,7 +137,7 @@ public class App extends Application {
                 "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px; ");
 
         btnStart.setOnAction(event -> {
-            Road road = new Road();
+            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username);
             road.start(primaryStage);
         });
 
@@ -499,6 +501,7 @@ public class App extends Application {
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
             JSONArray usernamesArray = new JSONArray();
+            ArrayList<String> keysList = new ArrayList<String>();
 
             // Iteriere über die Schlüssel und greife auf die Werte zu
             Iterator<String> keys = jsonObject.keys();
@@ -506,9 +509,7 @@ public class App extends Application {
                 String key = keys.next();
                 Object value = jsonObject.get(key);
                 usernamesArray.put(value);
-                System.out.println("Key: " + key + ", Value: " + value);
-
-                
+                keysList.add(key);
                 clientdIDs.put(key,(String)value);
             }
 
@@ -518,7 +519,12 @@ public class App extends Application {
                 StringBuilder usersStringBuilder = new StringBuilder();
                 for (int i = 0; i < usernamesArray.length(); i++) {
                     String username = usernamesArray.getString(i);
-                    usersStringBuilder.append(username).append(" Online").append("\n");
+                    String key = keysList.get(i);
+                    if(key.equals(hostID)){
+                        usersStringBuilder.append(username).append(" Online").append(" Host").append("\n");
+                    } else{
+                        usersStringBuilder.append(username).append(" Online").append("\n");
+                    }
                 }
 
                 Platform.runLater(() -> {
@@ -533,7 +539,7 @@ public class App extends Application {
     }
 
     public void createHost(Object... args){
-                String hostID = args[0].toString();
+                hostID = args[0].toString();
                 if(clientID.equals(hostID)){
                     isHost = true;
                 }

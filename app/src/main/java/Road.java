@@ -125,6 +125,13 @@ public class Road extends Application{
     private Sprites SPRITES = new Sprites();
 
 
+    private boolean isOfflineMode;
+    private String clientID;
+    private String username;
+    private boolean isHost;
+    private Map<String, String> clientIDs;
+
+
     @Override
     public void start(Stage primaryStage) {
         getSettingsFromApp(primaryStage);
@@ -702,7 +709,6 @@ public class Road extends Application{
             double offset = Math.random() * util.randomChoice(choicesList);
             double z = Math.floor(Math.random() * segments.size()) * SEGMENT_LENGTH;
             Sprite sprite = util.randomChoice(SPRITES.CARS);
-            System.out.println(sprite);
             double speed = MAX_SPEED / 4 + Math.random() * MAX_SPEED / (sprite == SPRITES.SEMI ? 4 : 2);
             Car car = new Car(offset, z, sprite, speed);
             Segment segment = findSegment(car.getZ());
@@ -787,7 +793,6 @@ public class Road extends Application{
         ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         ctx.fillText((int) speed / 100 + " Km/h", 0, 20);
         ctx.fillText("Last Lap: " +  (lastLapTime/1000) + " Sekunden", 0, 45); // #TODO
-        System.out.println(currentLap);
         ctx.fillText(currentLap + "/4 Laps", 0, 70);
     
         double nitroHud = nitro / 100;
@@ -828,4 +833,14 @@ public class Road extends Application{
             ctx.fillText(place + ".", 0, 95);
         }
     }
+
+    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username) {
+        this.isOfflineMode = isOfflineMode;
+        this.clientID = clientID;
+        this.clientIDs = clientIDs;
+        this.isHost = isHost;
+        this.username = username;
+        System.out.println(isOfflineMode+" "+clientID+" "+clientIDs+" "+isHost+" "+username);
+    }
+
 }
