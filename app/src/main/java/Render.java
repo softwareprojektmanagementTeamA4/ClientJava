@@ -186,17 +186,17 @@ public class Render {
 
     if (steer < 0) {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT : SPRITES.PLAYER_1_LEFT;
-        if (nitro) {
+        if (nitro && !Road.getNitroRecharge()) {
             playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT_NITRO : SPRITES.PLAYER_1_LEFT_NITRO;
         }
     } else if (steer > 0) {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
-        if (nitro) {
+        if (nitro && !Road.getNitroRecharge()) {
             playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_1_RIGHT_NITRO;
         }
     } else {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
-        if (nitro) {
+        if (nitro && !Road.getNitroRecharge()) {
             playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_1_STRAIGHT_NITRO;
         }
     }

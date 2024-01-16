@@ -100,7 +100,7 @@ public class Road extends Application{
     private boolean nitrokey = false;
     private double nitro = 100;
     private double maxNitro = 100;
-    private boolean nitroRecharge = false;
+    private static boolean nitroRecharge = false;
     private boolean nitroActive = false;
     private boolean fullscreen = false;
 
@@ -312,6 +312,10 @@ public class Road extends Application{
                 currentLapTime += delta_time;
             }
         }
+    }
+
+    public static boolean getNitroRecharge() {
+        return nitroRecharge;
     }
 
     private void updateCars(double dt, Segment playerSegment, double playerW) {
