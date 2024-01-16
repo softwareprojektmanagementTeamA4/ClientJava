@@ -29,11 +29,15 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONString;
+
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -74,6 +78,10 @@ public class App extends Application {
     private static String selectedLanes = "1 Lane";
     private static String selectedResolution = "High 1024x768";
     private static boolean isFullscreen = false;
+
+    private String clientID;
+    private Map<String, String> clientdIDs = new HashMap<String, String>();
+    private boolean isHost = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -194,8 +202,6 @@ public class App extends Application {
     }
 
     private void createSettingsScene(Stage primaryStage) {
-        connectedUsersLabel = new Label();
-        connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         Label saveConfirmationLabel = new Label("");
         saveConfirmationLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -401,7 +407,7 @@ public class App extends Application {
                     .setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username)))
                     .build();
 
-            socket = IO.socket("http://3.71.101.250:3000/", options);
+            socket = IO.socket("http://35.246.239.15:3000/", options);
 
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
@@ -445,8 +451,29 @@ public class App extends Application {
             socket.on("playersConnected", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
-                    Platform.runLater(() -> onPlayersConnected(args));
+                    Platform.runLater(() -> {
+                        try {
+                            onPlayersConnected(args);
+                        } catch (JSONException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    });
                 }
+            });
+
+            socket.on("getHostID", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> createHost(args));
+            }
+            });
+
+            socket.on("getPlayerID", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> getPlayerID(args));
+            }
             });
 
             socket.connect();
@@ -463,31 +490,57 @@ public class App extends Application {
                 System.out.println("KA");
             });
         }
+
+
     }
 
-    private void onPlayersConnected(Object... args) {
+    private void onPlayersConnected(Object... args) throws JSONException {
+        
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
-            if (jsonObject.has("usernames")) {
-                try {
-                    JSONArray usernamesArray = jsonObject.getJSONArray("usernames");
+            JSONArray usernamesArray = new JSONArray();
 
-                    StringBuilder usersStringBuilder = new StringBuilder();
-                    for (int i = 0; i < usernamesArray.length(); i++) {
-                        String username = usernamesArray.getString(i);
-                        usersStringBuilder.append(username).append(" Online").append("\n");
-                    }
+            // Iteriere über die Schlüssel und greife auf die Werte zu
+            Iterator<String> keys = jsonObject.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = jsonObject.get(key);
+                usernamesArray.put(value);
+                System.out.println("Key: " + key + ", Value: " + value);
 
-                    Platform.runLater(() -> {
-                        connectedUsersLabel.setText(usersStringBuilder.toString());
-                        connectedUsersLabel.setVisible(true);
-                        connectedUsersLabel.getParent().requestLayout(); // Fordert ein erneutes Layout an
-                    });
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                
+                clientdIDs.put(key,(String)value);
+            }
+
+            // Map<String, String> abc = (Map) ;
+              
+            try {
+                StringBuilder usersStringBuilder = new StringBuilder();
+                for (int i = 0; i < usernamesArray.length(); i++) {
+                    String username = usernamesArray.getString(i);
+                    usersStringBuilder.append(username).append(" Online").append("\n");
                 }
+
+                Platform.runLater(() -> {
+                    connectedUsersLabel.setText(usersStringBuilder.toString());
+                    connectedUsersLabel.setVisible(true);
+                    connectedUsersLabel.getParent().requestLayout(); // Fordert ein erneutes Layout an
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
+    }
+
+    public void createHost(Object... args){
+                String hostID = args[0].toString();
+                if(clientID.equals(hostID)){
+                    isHost = true;
+                }
+    }
+
+    public void getPlayerID(Object... args){
+        clientID = args[0].toString();
     }
 
     private void setOfflineMode(Stage primaryStage) {
