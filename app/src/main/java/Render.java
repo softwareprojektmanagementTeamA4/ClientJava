@@ -91,6 +91,7 @@ public class Render {
             }
             
         }
+        System.out.println("Fog: " + fog);
        fog(ctx, 0, y1, width, y2 - y1, fog);
     }
 
@@ -114,10 +115,11 @@ public class Render {
     }
 
     private void fog(GraphicsContext ctx, double x, double y, double width, double height, double fog) {
+
         if (fog < 1) {
             ctx.setGlobalAlpha(1 - fog);
-            ctx.setFill(Colors.getFogColor()); // Ändern Sie dies entsprechend Ihrer Farbdefinition
-            ctx.fillRect(x, y, width, height);
+            ctx.setFill(Colors.getFogColor()); 
+            ctx.fillRect(x, y+height, width, -height + 1);
             ctx.setGlobalAlpha(1);
         }
     }

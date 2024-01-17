@@ -58,7 +58,7 @@ public class App extends Application {
     private Button btnSettings;
     private Button btnQuit;
     private Button btnSave;
-    private Scene gameScene;
+    private static Scene gameScene;
     private Scene connectScene;
     private Scene settingsScene;
     private VBox connectBox;
@@ -88,6 +88,8 @@ public class App extends Application {
     private boolean gameStart = false;
     private boolean canStart = false;
     private boolean gameStart2 = false;
+
+    private Road road;
 
     @Override
     public void start(Stage primaryStage) {
@@ -139,7 +141,7 @@ public class App extends Application {
         setStartButton();
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
-                Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
                 road.start(primaryStage);
                 if(isConnected){
                     socket.emit("game_start");
@@ -607,7 +609,7 @@ public class App extends Application {
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
         if (gameStart && !gameStart2) {
-            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
             road.start(primaryStage);
             gameStart2 = true;
         }
@@ -646,12 +648,16 @@ public class App extends Application {
         }
     }
 
-    private void switchScene(Stage stage, Scene scene) {
+    public static void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
             stage.setScene(scene);
             stage.show();
         });
         System.out.println("Szene gewechselt");
+    }
+
+    public static Scene getGameScene(){
+        return gameScene;
     }
 
     public static int getRoadWidthSliderValue() {

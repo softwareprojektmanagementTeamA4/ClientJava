@@ -38,7 +38,7 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-public class Road extends Application{
+public class Road extends Application {
     private long serialVersionUID = 1L;
     private int FPS = 60;
     private static int WIDTH = 1024;
@@ -48,7 +48,7 @@ public class Road extends Application{
     private int SEGMENT_LENGTH = 200;
     private int RUMBLE_LENGTH = 3;
     private int CAMERA_HEIGHT = 1000;
-    private int DRAW_DISTANCE = 300;
+    private double DRAW_DISTANCE = 300;
     private int FIELD_OF_VIEW = 100;
     private int FOG_DENSITY = 5;
     private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / FPS);
@@ -62,17 +62,17 @@ public class Road extends Application{
     private double resolution; // scaling factor to provide resolution independence (computed)
     private double globalDeltaTime = 0;
     private long lastTime = 0;
-    private double centrifugal_force = 0.3;        // centrifugal force multiplier when going around curves
-    private double skySpeed = 0.001;                  // background sky layer scroll speed when going around curve (or up hill)
-    private double hillSpeed = 0.002;                 // background hill layer scroll speed when going around curve (or up hill)
-    private double treeSpeed = 0.003;                 // background tree layer scroll speed when going around curve (or up hill)
-    private double skyOffset = 0;                       // current sky scroll offset
-    private double hillOffset = 0;                       // current hill scroll offset
-    private double treeOffset = 0;                       // current tree scroll offset
-    private int totalCars = 200;   
+    private double centrifugal_force = 0.3; // centrifugal force multiplier when going around curves
+    private double skySpeed = 0.001; // background sky layer scroll speed when going around curve (or up hill)
+    private double hillSpeed = 0.002; // background hill layer scroll speed when going around curve (or up hill)
+    private double treeSpeed = 0.003; // background tree layer scroll speed when going around curve (or up hill)
+    private double skyOffset = 0; // current sky scroll offset
+    private double hillOffset = 0; // current hill scroll offset
+    private double treeOffset = 0; // current tree scroll offset
+    private int totalCars = 200;
     private double currentLapTime = 0;
     private double lastLapTime = 0;
-    private int currentLap = 0;
+    private int currentLap = 3;
     private int maxLap = 3;
     private int place = 1;
 
@@ -102,6 +102,7 @@ public class Road extends Application{
     private static boolean nitroRecharge = false;
     private boolean nitroActive = false;
     private boolean fullscreen = false;
+    private boolean gameFinished = false;
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
@@ -114,16 +115,16 @@ public class Road extends Application{
 
     Util util = new Util();
     Render render = new Render();
-    
+
     HashMap<String, Image> images = new HashMap<>();
     ImageLoader imageLoader = new ImageLoader();
 
     private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
 
     private ComboBox<String> lanesComboBox = new ComboBox<>();
-    
+
     private Sprites SPRITES = new Sprites();
-    private static double hudScale = 1;                        // scale hud elements (computed)
+    private static double hudScale = 1; // scale hud elements (computed)
     private boolean isOfflineMode;
     private String clientID;
     private String username;
@@ -132,7 +133,6 @@ public class Road extends Application{
     private Socket socket;
 
     private double deltaTime;
-
 
     @Override
     public void start(Stage primaryStage) {
@@ -150,71 +150,80 @@ public class Road extends Application{
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(scene);
         primaryStage.show();
-        
 
         scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case LEFT:
-                case A:
-                    keyLeft = true;
-                    break;
-                case RIGHT:
-                case D:
-                    keyRight = true;
-                    break;
-                case UP:
-                case W:
-                    keyFaster = true;
-                    break;
-                case DOWN:
-                case S:
-                    keySlower = true;
-                    break;
-                case SPACE:
-                    nitrokey = true;
-                    break;
+            if (!gameFinished) {
+                switch (event.getCode()) {
+                    case LEFT:
+                    case A:
+                        keyLeft = true;
+                        break;
+                    case RIGHT:
+                    case D:
+                        keyRight = true;
+                        break;
+                    case UP:
+                    case W:
+                        keyFaster = true;
+                        break;
+                    case DOWN:
+                    case S:
+                        keySlower = true;
+                        break;
+                    case SPACE:
+                        nitrokey = true;
+                        break;
+                }
+            } else{
+                switch (event.getCode()) {
+                    case Q:
+                        App.switchScene(primaryStage, App.getGameScene());
+                        break;
+                }
             }
         });
-        
+
         scene.setOnKeyReleased(event -> {
-            switch (event.getCode()) {
-                case LEFT:
-                case A:
-                    keyLeft = false;
-                    break;
-                case RIGHT:
-                case D:
-                    keyRight = false;
-                    break;
-                case UP:
-                case W:
-                    keyFaster = false;
-                    break;
-                case DOWN:
-                case S:
-                    keySlower = false;
-                    break;
-                case SPACE:
-                    nitrokey = false; 
-                    break;
+            if (!gameFinished) {
+                switch (event.getCode()) {
+                    case LEFT:
+                    case A:
+                        keyLeft = false;
+                        break;
+                    case RIGHT:
+                    case D:
+                        keyRight = false;
+                        break;
+                    case UP:
+                    case W:
+                        keyFaster = false;
+                        break;
+                    case DOWN:
+                    case S:
+                        keySlower = false;
+                        break;
+                    case SPACE:
+                        nitrokey = false;
+                        break;
+                }
             }
         });
 
         reset();
-        
+
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                
+
                 frame(ctx);
                 endScreen(ctx);
                 updateHUD(ctx);
             }
         };
         gameLoop.start();
-		
+
         primaryStage.setScene(scene);
-        if(fullscreen) {
+        if (fullscreen) {
             primaryStage.setFullScreen(true);
             root.maxWidthProperty().bind(primaryStage.widthProperty());
             root.maxHeightProperty().bind(primaryStage.heightProperty());
@@ -223,9 +232,9 @@ public class Road extends Application{
 
     }
 
-    //=========================================================================
+    // =========================================================================
     // UPDATE THE GAME WORLD
-    //=========================================================================
+    // =========================================================================
 
     private void update(double delta_time) {
         Car car;
@@ -236,25 +245,30 @@ public class Road extends Application{
         Segment playerSegment = findSegment(position + playerZ);
         double playerW = SPRITES.PLAYER_STRAIGHT.getW() * SPRITES.SCALE;
         double speedPercent = speed / MAX_SPEED;
-        double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
+        double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1)
+                                                   // in 1 second
         double startPosition = position;
 
         updateCars(delta_time, playerSegment, playerW);
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
-        skyOffset  = util.increase(skyOffset,  skySpeed  * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
-        hillOffset = util.increase(hillOffset, hillSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
-        treeOffset = util.increase(treeOffset, treeSpeed * playerSegment.getCurve() * (position-startPosition)/SEGMENT_LENGTH, 1);
+        skyOffset = util.increase(skyOffset,
+                skySpeed * playerSegment.getCurve() * (position - startPosition) / SEGMENT_LENGTH, 1);
+        hillOffset = util.increase(hillOffset,
+                hillSpeed * playerSegment.getCurve() * (position - startPosition) / SEGMENT_LENGTH, 1);
+        treeOffset = util.increase(treeOffset,
+                treeSpeed * playerSegment.getCurve() * (position - startPosition) / SEGMENT_LENGTH, 1);
 
         if (keyLeft)
             playerX = playerX - dx;
         else if (keyRight)
             playerX = playerX + dx;
 
-        playerX = playerX - (dx * speedPercent * playerSegment.getCurve() * centrifugal_force); // centrifugal force multiplier
+        playerX = playerX - (dx * speedPercent * playerSegment.getCurve() * centrifugal_force); // centrifugal force
+                                                                                                // multiplier
 
-        if(keyFaster)
+        if (keyFaster)
             speed = util.accelerate(speed, ACCEL, delta_time);
         else if (keySlower)
             speed = util.accelerate(speed, BREAKING, delta_time);
@@ -279,25 +293,24 @@ public class Road extends Application{
             nitro = Math.min(nitro, maxNitro);
             nitroRecharge = nitro < maxNitro;
         }
-        
-        
+
         if ((playerX < -1) || (playerX > 1)) {
 
             if (speed > OFF_ROAD_LIMIT)
                 speed = util.accelerate(speed, OFF_ROAD_DECEL, delta_time);
-            
+
             for (int n = 0; n < playerSegment.getSprites().size(); n++) {
                 sprite = playerSegment.getSprites().get(n);
                 spriteW = sprite.getSource().getW() * SPRITES.SCALE;
                 double spriteX = sprite.getOffset() + spriteW / 2 * (sprite.getOffset() > 0 ? 1 : -1);
                 if (util.overlap(playerX, playerW, spriteX, spriteW, 0)) { // 0 richtig?
                     speed = MAX_SPEED / 5;
-                    position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH); 
+                    position = util.increase(playerSegment.getP1().getWorld().getZ(), -playerZ, TRACK_LENGTH);
                     break;
                 }
             }
         }
-            
+
         for (int n = 0; n < playerSegment.getCars().size(); n++) {
             car = playerSegment.getCars().get(n);
             carW = car.getSprite().getW() * SPRITES.SCALE;
@@ -309,19 +322,18 @@ public class Road extends Application{
                 }
             }
         }
-            
-        playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
-        speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
+
+        playerX = util.limit(playerX, -2, 2); // dont ever let it go too far out of bounds
+        speed = util.limit(speed, 0, MAX_SPEED); // or exceed maxSpeed
 
         if (position > playerZ) {
-            if (currentLapTime != 0 && (startPosition < playerZ)) { 
-                    lastLapTime = currentLapTime;
-                    currentLapTime = 0;
-                    currentLap += 1;
-                    System.out.println("CurrentLap: "+currentLap);
-                }
-            else {
-                //currentLapTime += globalDeltaTime;
+            if (currentLapTime != 0 && (startPosition < playerZ)) {
+                lastLapTime = currentLapTime;
+                currentLapTime = 0;
+                currentLap += 1;
+                System.out.println("CurrentLap: " + currentLap);
+            } else {
+                // currentLapTime += globalDeltaTime;
                 currentLapTime += deltaTime;
                 System.out.println(currentLapTime);
                 System.out.println(deltaTime);
@@ -340,7 +352,8 @@ public class Road extends Application{
             oldSegment = findSegment(car.getZ());
             car.setOffset(car.getOffset() + updateCarOffset(car, oldSegment, playerSegment, playerW));
             car.setZ(util.increase(car.getZ(), dt * car.getSpeed(), TRACK_LENGTH));
-            car.setPercent(util.percentRemaining(car.getZ(), SEGMENT_LENGTH)); // useful for interpolation during rendering phase
+            car.setPercent(util.percentRemaining(car.getZ(), SEGMENT_LENGTH)); // useful for interpolation during
+                                                                               // rendering phase
             newSegment = findSegment(car.getZ());
             if (oldSegment != newSegment) {
                 int index = oldSegment.getCars().indexOf(car);
@@ -357,40 +370,47 @@ public class Road extends Application{
         double otherCarW;
         double lookahead = 20;
         double carW = car.getSprite().getW() * SPRITES.SCALE;
-    
-        // Optimierung: Kein Lenken um andere Autos, wenn außerhalb des Sichtbereichs des Spielers
+
+        // Optimierung: Kein Lenken um andere Autos, wenn außerhalb des Sichtbereichs
+        // des Spielers
         if ((carSegment.getIndex() - playerSegment.getIndex()) > DRAW_DISTANCE)
             return 0;
-    
+
         for (int i = 1; i < lookahead; i++) {
             segment = segments.get((carSegment.getIndex() + i) % segments.size());
-    
-            if ((segment == playerSegment) && (car.getSpeed() > speed) && (util.overlap(playerX, playerW, car.getOffset(), carW, 1.2))) {
+
+            if ((segment == playerSegment) && (car.getSpeed() > speed)
+                    && (util.overlap(playerX, playerW, car.getOffset(), carW, 1.2))) {
                 if (playerX > 0.5)
                     dir = -1;
                 else if (playerX < -0.5)
                     dir = 1;
                 else
                     dir = (car.getOffset() > playerX) ? 1 : -1;
-                return dir * 1/i * (car.getSpeed() - speed) / MAX_SPEED; // je näher die Autos beieinander sind (kleiner i) und je größer das Geschwindigkeitsverhältnis ist, desto größer ist der Offset
+                return dir * 1 / i * (car.getSpeed() - speed) / MAX_SPEED; // je näher die Autos beieinander sind
+                                                                           // (kleiner i) und je größer das
+                                                                           // Geschwindigkeitsverhältnis ist, desto
+                                                                           // größer ist der Offset
             }
-    
+
             for (int j = 0; j < segment.getCars().size(); j++) {
                 otherCar = segment.getCars().get(j);
                 otherCarW = otherCar.getSprite().getW() * SPRITES.SCALE;
-                if ((car.getSpeed() > otherCar.getSpeed()) && util.overlap(car.getOffset(), carW, otherCar.getOffset(), otherCarW, 1.2)) {
+                if ((car.getSpeed() > otherCar.getSpeed())
+                        && util.overlap(car.getOffset(), carW, otherCar.getOffset(), otherCarW, 1.2)) {
                     if (otherCar.getOffset() > 0.5)
                         dir = -1;
                     else if (otherCar.getOffset() < -0.5)
                         dir = 1;
                     else
                         dir = (car.getOffset() > otherCar.getOffset()) ? 1 : -1;
-                    return dir * 1/i * (car.getSpeed() - otherCar.getSpeed()) / MAX_SPEED;
+                    return dir * 1 / i * (car.getSpeed() - otherCar.getSpeed()) / MAX_SPEED;
                 }
             }
         }
-    
-        // Wenn keine Autos voraus sind, aber ich aus irgendeinem Grund von der Straße abgekommen bin, dann wieder zurücklenken
+
+        // Wenn keine Autos voraus sind, aber ich aus irgendeinem Grund von der Straße
+        // abgekommen bin, dann wieder zurücklenken
         if (car.getOffset() < -0.9)
             return 0.1;
         else if (car.getOffset() > 0.9)
@@ -398,90 +418,106 @@ public class Road extends Application{
         else
             return 0;
     }
-    //=========================================================================
+
+    // =========================================================================
     // RENDER THE GAME WORLD
-    //=========================================================================
+    // =========================================================================
     private void render(GraphicsContext ctx) {
         Segment baseSegment = findSegment(position);
         double basePercent = util.percentRemaining(position, SEGMENT_LENGTH);
         Segment playerSegment = findSegment(position + playerZ);
         double playerPercent = util.percentRemaining(position + playerZ, SEGMENT_LENGTH);
-        double playerY = util.interpolate(playerSegment.getP1().getWorld().getY(), playerSegment.getP2().getWorld().getY(), playerPercent);
+        double playerY = util.interpolate(playerSegment.getP1().getWorld().getY(),
+                playerSegment.getP2().getWorld().getY(), playerPercent);
         double maxy = HEIGHT;
 
         double x = 0;
-        double dx = - (baseSegment.getCurve() * basePercent);
+        double dx = -(baseSegment.getCurve() * basePercent);
 
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        //ctx.setFill(Color.GREEN);
-        //ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        
-        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset, resolution * skySpeed * playerY); // Was muss Rotation und Offset sein?
-        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset, resolution * hillSpeed * playerY);
-        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset, resolution * treeSpeed * playerY);
+        // ctx.setFill(Color.GREEN);
+        // ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-        
+        render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset, resolution * skySpeed * playerY); // Was
+                                                                                                                       // muss
+                                                                                                                       // Rotation
+                                                                                                                       // und
+                                                                                                                       // Offset
+                                                                                                                       // sein?
+        render.background(ctx, background, WIDTH, HEIGHT, Background.HILLS, hillOffset,
+                resolution * hillSpeed * playerY);
+        render.background(ctx, background, WIDTH, HEIGHT, Background.TREES, treeOffset,
+                resolution * treeSpeed * playerY);
+
         Car car;
         Sprite sprite;
         double spriteScale;
         double spriteX;
         double spriteY;
 
-        for(int n = 0; n < DRAW_DISTANCE; n++) {
+        for (int n = 0; n < DRAW_DISTANCE; n++) {
             Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
             segment.setLooped(segment.getIndex() < baseSegment.getIndex());
             segment.setFog(util.exponentialFog(n / DRAW_DISTANCE, FOG_DENSITY));
             segment.setClip(maxy);
 
-            util.project(segment.getP1(), (playerX * ROAD_WIDTH) -x,    playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
-            util.project(segment.getP2(), (playerX * ROAD_WIDTH) -x -dx, playerY + CAMERA_HEIGHT, position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+            util.project(segment.getP1(), (playerX * ROAD_WIDTH) - x, playerY + CAMERA_HEIGHT,
+                    position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
+            util.project(segment.getP2(), (playerX * ROAD_WIDTH) - x - dx, playerY + CAMERA_HEIGHT,
+                    position - (segment.isLooped() ? TRACK_LENGTH : 0), CAMERA_DEPTH, WIDTH, HEIGHT, ROAD_WIDTH);
 
             x = x + dx;
             dx = dx + segment.getCurve();
 
-            if((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) || 
-               (segment.getP2().getScreen().getY() >= segment.getP1().getScreen().getY()) ||
-               (segment.getP2().getScreen().getY() >= maxy))
-               {
-                continue;}
+            if ((segment.getP1().getCamera().getZ() <= CAMERA_DEPTH) ||
+                    (segment.getP2().getScreen().getY() >= segment.getP1().getScreen().getY()) ||
+                    (segment.getP2().getScreen().getY() >= maxy)) {
+                continue;
+            }
 
             render.segment(
-                ctx,
-                WIDTH, 
-                LANES, 
-                segment.getP1().getScreen().getX(),  //segment.getP1().getScreen().getX(),
-                segment.getP1().getScreen().getY(), 
-                segment.getP1().getScreen().getWidth(), 
-                segment.getP2().getScreen().getX(), 
-                segment.getP2().getScreen().getY(), 
-                segment.getP2().getScreen().getWidth(), 
-                segment.getFog(),
-                segment.getColor());
-            
+                    ctx,
+                    WIDTH,
+                    LANES,
+                    segment.getP1().getScreen().getX(), // segment.getP1().getScreen().getX(),
+                    segment.getP1().getScreen().getY(),
+                    segment.getP1().getScreen().getWidth(),
+                    segment.getP2().getScreen().getX(),
+                    segment.getP2().getScreen().getY(),
+                    segment.getP2().getScreen().getWidth(),
+                    segment.getFog(),
+                    segment.getColor());
+
             maxy = segment.getP1().getScreen().getY();
+        }
+        for (int n = ((int)DRAW_DISTANCE - 1); n > 0; n--) {
+            Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
+
+            for (int i = 0; i < segment.getCars().size(); i++) {
+                car = segment.getCars().get(i);
+                sprite = car.getSprite();
+                spriteScale = util.interpolate(segment.getP1().getScreen().getScale(),
+                        segment.getP2().getScreen().getScale(), car.getPercent());
+                spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(),
+                        car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
+                spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(),
+                        car.getPercent());
+                render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, car.getSprite(), spriteScale,
+                        spriteX, spriteY, -0.5, -1, segment.getClip());
             }
-            for(int n = (DRAW_DISTANCE - 1); n > 0; n--) {
-                Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
-                for(int i = 0; i < segment.getCars().size(); i++) {
-                    car = segment.getCars().get(i);
-                    sprite = car.getSprite();
-                    spriteScale = util.interpolate(segment.getP1().getScreen().getScale(), segment.getP2().getScreen().getScale(), car.getPercent());
-                    spriteX = util.interpolate(segment.getP1().getScreen().getX(), segment.getP2().getScreen().getX(), car.getPercent()) + (spriteScale * car.getOffset() * ROAD_WIDTH * WIDTH / 2);
-                    spriteY = util.interpolate(segment.getP1().getScreen().getY(), segment.getP2().getScreen().getY(), car.getPercent());
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites,  car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip());
-                }
+            for (int i = 0; i < segment.getSprites().size(); i++) {
+                sprite = segment.getSprites().get(i);
+                spriteScale = segment.getP1().getScreen().getScale();
+                spriteX = segment.getP1().getScreen().getX()
+                        + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
+                spriteY = segment.getP1().getScreen().getY();
+                render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, sprite.getSource(), spriteScale,
+                        spriteX, spriteY, (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+            }
 
-                for(int i = 0; i < segment.getSprites().size(); i++) {
-                    sprite = segment.getSprites().get(i);
-                    spriteScale = segment.getP1().getScreen().getScale();
-                    spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
-                    spriteY = segment.getP1().getScreen().getY();
-                    render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
-                }
-
-                if (segment == playerSegment) {
-                    render.player(
+            if (segment == playerSegment) {
+                render.player(
                         ctx,
                         sprites,
                         WIDTH,
@@ -491,21 +527,24 @@ public class Road extends Application{
                         speed / MAX_SPEED,
                         CAMERA_DEPTH / playerZ,
                         WIDTH / 2,
-                        (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
+                        (HEIGHT / 2) - (CAMERA_DEPTH / playerZ
+                                * util.interpolate(playerSegment.getP1().getCamera().getY(),
+                                        playerSegment.getP2().getCamera().getY(), playerPercent)
+                                * HEIGHT / 2),
                         speed * (keyLeft ? -1 : keyRight ? 1 : 0),
                         playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY(),
                         nitrokey);
-                }
             }
+        }
     }
 
     Segment findSegment(double z) {
         return segments.get((int) Math.floor(z / SEGMENT_LENGTH) % segments.size());
     }
-   
-    //=========================================================================
+
+    // =========================================================================
     // BUILD ROAD GEOMETRY
-    //=========================================================================
+    // =========================================================================
 
     private double lastY() {
         return (segments.size() == 0) ? 0 : segments.get(segments.size() - 1).getP2().getWorld().getY();
@@ -521,27 +560,26 @@ public class Road extends Application{
                 curve,
                 new ArrayList<>(),
                 new ArrayList<>(),
-                rumbleColor
-        ));
+                rumbleColor));
     }
 
     private void addSprite(int n, Sprite sprite, double offset) {
         segments.get(n).getSprites().add(new Sprite(offset, sprite));
-      }
+    }
 
-    private void addRoad(int enter, int hold, int leave, int curve, int d){
+    private void addRoad(int enter, int hold, int leave, int curve, int d) {
         double startY = lastY();
         double endY = startY + (util.toInt(d, 0) * SEGMENT_LENGTH);
-        int n; 
+        int n;
         double total = enter + hold + leave;
 
-        for(n = 0; n < enter; n++){
+        for (n = 0; n < enter; n++) {
             addSegment(util.easeIn(0, curve, n / enter), util.easeInOut(startY, endY, n / total));
         }
-        for(n = 0; n < hold; n++){
+        for (n = 0; n < hold; n++) {
             addSegment(curve, util.easeInOut(startY, endY, (enter + n) / total));
         }
-        for(n = 0; n < leave; n++){
+        for (n = 0; n < leave; n++) {
             addSegment(util.easeInOut(curve, 0, n / leave), util.easeInOut(startY, endY, (enter + hold + n) / total));
         }
     }
@@ -580,34 +618,34 @@ public class Road extends Application{
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.EASY.getValue(),
                 RoadDefinition.Hill.NONE.getValue());
-        
+
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue(),
                 RoadDefinition.Hill.MEDIUM.getValue());
-        
+
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.EASY.getValue(),
                 -RoadDefinition.Hill.LOW.getValue());
-        
+
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.EASY.getValue(),
                 RoadDefinition.Hill.MEDIUM.getValue());
-        
+
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(),
                 -RoadDefinition.Hill.MEDIUM.getValue());
     }
 
     public void addBumps() {
-        addRoad(10, 10, 10, 0,  5);
+        addRoad(10, 10, 10, 0, 5);
         addRoad(10, 10, 10, 0, -2);
         addRoad(10, 10, 10, 0, -5);
-        addRoad(10, 10, 10, 0,  8);
-        addRoad(10, 10, 10, 0,  5);
+        addRoad(10, 10, 10, 0, 8);
+        addRoad(10, 10, 10, 0, 5);
         addRoad(10, 10, 10, 0, -7);
-        addRoad(10, 10, 10, 0,  5);
+        addRoad(10, 10, 10, 0, 5);
         addRoad(10, 10, 10, 0, -2);
-      }
+    }
 
     private void addDownhillToEnd(Integer num) {
         if (num == null) {
@@ -617,8 +655,7 @@ public class Road extends Application{
 
     }
 
-    private void addLowRollingHills(Integer num, Integer height)
-    {
+    private void addLowRollingHills(Integer num, Integer height) {
         if (num == null) {
             num = RoadDefinition.Length.SHORT.getValue();
         }
@@ -639,23 +676,30 @@ public class Road extends Application{
         addHill(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
         addLowRollingHills(null, null);
         addBumps();
-        addCurve(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
-        //addBumps();
-        //addLowRollingHills(null, null);
-        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
-        //addStraight(null);
-        //addHill(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Hill.HIGH.getValue());
-        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.MEDIUM.getValue());
-        //addHill(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Hill.HIGH.getValue());
-        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(), RoadDefinition.Hill.LOW.getValue());
-        //addBumps();
-        //addHill(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Hill.MEDIUM.getValue());
+        addCurve(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue(),
+                RoadDefinition.Hill.LOW.getValue());
+        // addBumps();
+        // addLowRollingHills(null, null);
+        addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(),
+                RoadDefinition.Hill.MEDIUM.getValue());
+        // addStraight(null);
+        // addHill(RoadDefinition.Length.MEDIUM.getValue(),
+        // RoadDefinition.Hill.HIGH.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(),
+                RoadDefinition.Hill.MEDIUM.getValue());
+        // addHill(RoadDefinition.Length.LONG.getValue(),
+        // RoadDefinition.Hill.HIGH.getValue());
+        addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(),
+                RoadDefinition.Hill.LOW.getValue());
+        // addBumps();
+        // addHill(RoadDefinition.Length.LONG.getValue(),
+        // -RoadDefinition.Hill.MEDIUM.getValue());
         addStraight(null);
         addDownhillToEnd(null);
 
         resetSprites();
         resetCars();
-        
+
         segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.getRoadStart());
         segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.getRoadStart());
         for (int n = 0; n < RUMBLE_LENGTH; n++) {
@@ -666,29 +710,30 @@ public class Road extends Application{
 
     public void resetSprites() {
         List<Integer> intList = new ArrayList<>(List.of(1, -1));
-        addSprite(50,  SPRITES.BILLBOARD07, -1);
-        addSprite(40,  SPRITES.BILLBOARD06, -1);
-        addSprite(60,  SPRITES.BILLBOARD08, -1);
-        addSprite(80,  SPRITES.BILLBOARD09, -1);
+        addSprite(50, SPRITES.BILLBOARD07, -1);
+        addSprite(40, SPRITES.BILLBOARD06, -1);
+        addSprite(60, SPRITES.BILLBOARD08, -1);
+        addSprite(80, SPRITES.BILLBOARD09, -1);
         addSprite(100, SPRITES.BILLBOARD01, -1);
         addSprite(120, SPRITES.BILLBOARD02, -1);
         addSprite(140, SPRITES.BILLBOARD03, -1);
         addSprite(160, SPRITES.BILLBOARD04, -1);
         addSprite(180, SPRITES.BILLBOARD05, -1);
-        
-        addSprite(240,SPRITES.BILLBOARD07, -1.2);
-        addSprite(240,SPRITES.BILLBOARD06, 1.2);
+
+        addSprite(240, SPRITES.BILLBOARD07, -1.2);
+        addSprite(240, SPRITES.BILLBOARD06, 1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD07, -1.2);
-        addSprite(segments.size() - 25, SPRITES.BILLBOARD06,  1.2);
+        addSprite(segments.size() - 25, SPRITES.BILLBOARD06, 1.2);
 
-
-        /*for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
-            addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
-            addSprite(n, SPRITES.PALM_TREE,   1 + Math.random() * 2);
-        }*/
+        /*
+         * for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
+         * addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
+         * addSprite(n, SPRITES.PALM_TREE, 1 + Math.random() * 2);
+         * }
+         */
 
         for (int n = 250; n < 1000; n += 50) {
-            addSprite(n, SPRITES.COLUMN , 1.1);
+            addSprite(n, SPRITES.COLUMN, 1.1);
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE1, -1 - (Math.random() * 2));
             addSprite(n + util.randomInt(0, 5), SPRITES.TREE2, -1 - (Math.random() * 2));
         }
@@ -703,7 +748,7 @@ public class Road extends Application{
             for (int i = 0; i < 20; i++) {
                 Sprite sprite = util.randomChoice(SPRITES.PLANTS);
                 double offset = side * (1.5 + Math.random());
-                addSprite(n + util.randomInt(0,50), sprite, offset);
+                addSprite(n + util.randomInt(0, 50), sprite, offset);
             }
         }
 
@@ -723,12 +768,36 @@ public class Road extends Application{
             cars.add(car);
         }
     }
-    
-    //=========================================================================
+
+    // =========================================================================
     // THE GAME LOOP
-    //=========================================================================e Segmprivate void gameLoop(GraphicsContext gtx) {
+    // =========================================================================e
+    // Segmprivate void gameLoop(GraphicsContext gtx) {
 
     private void reset() {
+        segments.clear();
+        cars.clear();
+        TRACK_LENGTH = 0;
+        position = 1;
+        playerX = 0;
+        speed = 0;
+        MAX_SPEED = SEGMENT_LENGTH / (1.0 / FPS);
+        ACCEL = MAX_SPEED / 5;
+        BREAKING = -MAX_SPEED;
+        DECEL = -MAX_SPEED / 5;
+        OFF_ROAD_LIMIT = MAX_SPEED / 4;
+        OFF_ROAD_DECEL = -MAX_SPEED / 2;
+        currentLapTime = 0;
+        lastLapTime = 0;
+        currentLap = 3;
+        maxNitro = 100;
+        nitro = 100;
+        nitroRecharge = false;
+        nitroActive = false;
+        place = 1;
+        gameFinished = false;
+
+
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
@@ -739,17 +808,17 @@ public class Road extends Application{
         long timeNow = System.currentTimeMillis();
         deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
-        double step = 1.0 / FPS/2; 
+        double step = 1.0 / FPS / 2;
         update(deltaTime);
         render(ctx);
         lastTime = timeNow;
     }
 
-    //=========================================================================
+    // =========================================================================
     // TWEAK UI HANDLERS
-    //=========================================================================
+    // =========================================================================
 
-    private void getSettingsFromApp(Stage primaryStage){ //#TODO 
+    private void getSettingsFromApp(Stage primaryStage) { // #TODO
         ROAD_WIDTH = App.getRoadWidthSliderValue();
         LANES = App.getLanesSliderValue();
         CAMERA_HEIGHT = App.getCameraHeightSliderValue();
@@ -758,17 +827,19 @@ public class Road extends Application{
         FOG_DENSITY = App.getFogDensitySliderValue();
         WIDTH = App.getResolutionSliderValueWidth();
         HEIGHT = App.getResolutionSliderValueHeight();
-        if(App.getFullscreenToggleValue()){
+        if (App.getFullscreenToggleValue()) {
             fullscreen = true;
-                }
+        }
     }
 
     public void endScreen(GraphicsContext ctx) {
         String username = "Player 1";
         if (currentLap > maxLap) {
-            if(!finishedPlayers.contains(username)){
-            finishedPlayers.add(username);
+            if (!finishedPlayers.contains(username)) {
+                finishedPlayers.add(username);
             }
+            gameFinished = true;
+            speed = 0;
             double canvasWidth = WIDTH;
             double canvasHeight = HEIGHT;
 
@@ -776,21 +847,22 @@ public class Road extends Application{
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 60 * hudScale));
             ctx.fillText("RACE FINISHED", canvasWidth / 3.5, canvasHeight / 4);
 
-
             ctx.setFill(Color.WHITE);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Beispiel für die Schriftgröße und Schriftart
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Beispiel für die Schriftgröße und
+                                                                             // Schriftart
             for (int i = 0; i < finishedPlayers.size(); i++) {
-                String playerLabel = (i + 1)+ "# " + finishedPlayers.get(i);
+                String playerLabel = (i + 1) + "# " + finishedPlayers.get(i);
 
                 Text text = new Text(playerLabel);
-                text.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Schriftgröße und Schriftart festlegen
+                text.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Schriftgröße und Schriftart
+                                                                                  // festlegen
                 double textWidth = text.getBoundsInLocal().getWidth();
                 double textHeight = text.getBoundsInLocal().getHeight();
 
                 ctx.fillText(playerLabel, canvasWidth / 3.5, canvasHeight / 3 + i * textHeight * 1.5);
             }
         }
-    } 
+    }
 
     public void updateHUD(GraphicsContext ctx) {
         ctx.setFill(Color.rgb(255, 0, 0, 0.3));
@@ -799,49 +871,52 @@ public class Road extends Application{
         ctx.setFill(Color.BLACK);
         ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale));
         ctx.fillText((int) speed / 100 + " Km/h", 0, 20 * hudScale);
-        ctx.fillText("Last Lap: " +  (String.format("%.2f", lastLapTime)) + " Sekunden", 0, 45 * hudScale);
+        ctx.fillText("Last Lap: " + (String.format("%.2f", lastLapTime)) + " Sekunden", 0, 45 * hudScale);
         ctx.fillText(currentLap + "/4 Laps", 0, 70 * hudScale);
-    
+
         double nitroHud = nitro / 100;
         double maxNitroHud = maxNitro / 100;
-    
-        double totalBlackBarWidth = (50 * 10) + 20; 
-    
+
+        double totalBlackBarWidth = (50 * 10) + 20;
+
         ctx.setFill(Color.BLACK);
-        ctx.fillRect(300 * hudScale - 10 * hudScale, 25 * hudScale - 10 * hudScale, totalBlackBarWidth * hudScale, (40 + 20) * hudScale);
-    
+        ctx.fillRect(300 * hudScale - 10 * hudScale, 25 * hudScale - 10 * hudScale, totalBlackBarWidth * hudScale,
+                (40 + 20) * hudScale);
+
         ctx.setStroke(Color.BLACK);
-        ctx.setLineWidth(5 * hudScale); 
+        ctx.setLineWidth(5 * hudScale);
         ctx.strokeRect(300 * hudScale, 25 * hudScale, (50 * 10) * nitroHud * hudScale, 40 * hudScale);
-    
+
         if (nitroRecharge) {
             ctx.setFill(Color.rgb(255, 0, 0));
         } else {
             ctx.setFill(Color.rgb(77, 187, 255));
         }
         ctx.fillRect(300 * hudScale, 25 * hudScale, (50 * 10) * nitroHud * hudScale, 40 * hudScale);
-    
+
         ctx.setFill(Color.BLACK);
         ctx.setGlobalAlpha(0.5);
         ctx.fillRect(300 * hudScale, 25 * hudScale, (50 * 10) * maxNitroHud * hudScale, 40 * hudScale);
         ctx.setGlobalAlpha(1.0);
-    
+
         if (nitroRecharge) {
             ctx.setFill(Color.rgb(255, 0, 0));
-            ctx.drawImage(nitroBottleEmpty, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale, (13 * 2.5) * hudScale);
+            ctx.drawImage(nitroBottleEmpty, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale,
+                    (13 * 2.5) * hudScale);
         } else {
             ctx.setFill(Color.rgb(77, 187, 230));
-            ctx.drawImage(nitroBottle, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale, (13 * 2.5) * hudScale);
+            ctx.drawImage(nitroBottle, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale,
+                    (13 * 2.5) * hudScale);
         }
-    
-        if (App.getOfflineMode()) { 
+
+        if (App.getOfflineMode()) {
             ctx.setFill(Color.RED);
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24 * hudScale));
             ctx.fillText(place + ".", 0, 95 * hudScale);
         }
     }
 
-    public static double getWindowWidth() { 
+    public static double getWindowWidth() {
         return WIDTH;
     }
 
@@ -851,17 +926,17 @@ public class Road extends Application{
 
     public static void setHudScale(double hudScale) {
         Road.hudScale = hudScale;
-    } 
+    }
 
-
-    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username, Socket socket) {
+    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username,
+            Socket socket) {
         this.isOfflineMode = isOfflineMode;
         this.clientID = clientID;
         this.clientIDs = clientIDs;
         this.isHost = isHost;
         this.username = username;
         this.socket = socket;
-        System.out.println(isOfflineMode+" "+clientID+" "+clientIDs+" "+isHost+" "+username);
+        System.out.println(isOfflineMode + " " + clientID + " " + clientIDs + " " + isHost + " " + username);
     }
 
 }
