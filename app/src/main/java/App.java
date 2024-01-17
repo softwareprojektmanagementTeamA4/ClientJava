@@ -18,6 +18,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -128,8 +130,17 @@ public class App extends Application {
         connectBox.getChildren().add(connectbtn);
         connectBox.getChildren().add(serverStatus);
 
-        connectScene = new Scene(connectBox, SCREEN_WIDTH, SCREEN_HEIGHT);
-        connectScene.getRoot().setStyle("-fx-background-color: blue;");
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
+        StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
+        root.getChildren().add(connectBox);
+
+        connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     }
 
@@ -212,11 +223,17 @@ public class App extends Application {
 
         buttonGameBox.getChildren().add(reconnectBox);
 
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
         StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
         root.getChildren().addAll(playersConnectedBox, buttonGameBox);
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gameScene.getRoot().setStyle("-fx-background-color: blue;");
     }
 
     private void createSettingsScene(Stage primaryStage) {
@@ -434,11 +451,18 @@ public class App extends Application {
 
         settingsLayout.getChildren().addAll(topRightBox, lablesandSlider, saveConfirmationLayout);
 
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
         StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
         root.getChildren().add(settingsLayout);
+        
 
         settingsScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-        settingsScene.getRoot().setStyle("-fx-background-color: blue;");
     }
 
     private void establishConnection(Stage primaryStage) {
