@@ -130,6 +130,7 @@ public class Road extends Application{
     private String username;
     private boolean isHost;
     private Map<String, String> clientIDs;
+    private Socket socket;
 
 
     @Override
@@ -197,7 +198,12 @@ public class Road extends Application{
                     break;
             }
         });
+
         reset();
+        if(!isOfflineMode){
+            socket.emit("game_start");
+        }
+        
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
@@ -834,12 +840,13 @@ public class Road extends Application{
         }
     }
 
-    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username) {
+    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username, Socket socket) {
         this.isOfflineMode = isOfflineMode;
         this.clientID = clientID;
         this.clientIDs = clientIDs;
         this.isHost = isHost;
         this.username = username;
+        this.socket = socket;
         System.out.println(isOfflineMode+" "+clientID+" "+clientIDs+" "+isHost+" "+username);
     }
 

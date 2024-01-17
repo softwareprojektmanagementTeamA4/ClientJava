@@ -1,4 +1,3 @@
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -79,11 +78,15 @@ public class App extends Application {
     private static String selectedLanes = "1 Lane";
     private static String selectedResolution = "High 1024x768";
     private static boolean isFullscreen = false;
+    private boolean first_Build = false;
 
     private String clientID;
     private String hostID;
     private Map<String, String> clientdIDs = new HashMap<String, String>();
     private boolean isHost = false;
+    private boolean playerReady = false;
+    private boolean gameStart = false;
+    private boolean canStart = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -132,13 +135,20 @@ public class App extends Application {
         connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         btnStart = new Button();
-        btnStart.setText("Start");
-        btnStart.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px; ");
 
         btnStart.setOnAction(event -> {
-            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username);
-            road.start(primaryStage);
+            if (canStart || clientdIDs.size() <= 1) {
+                Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                road.start(primaryStage);
+            } else if (!playerReady && !isHost) {
+                playerReady = true;
+                socket.emit("player_ready", playerReady);
+            } else if (playerReady && !isHost) {
+                playerReady = false;
+                socket.emit("player_ready", playerReady);
+
+            }
+            setStartButton();
         });
 
         btnSettings = new Button();
@@ -465,17 +475,31 @@ public class App extends Application {
             });
 
             socket.on("getHostID", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Platform.runLater(() -> createHost(args));
-            }
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> createHost(args));
+                }
             });
 
             socket.on("getPlayerID", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Platform.runLater(() -> getPlayerID(args));
-            }
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> getPlayerID(args));
+                }
+            });
+
+            socket.on("start", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> setGameStart(primaryStage, args));
+                }
+            });
+
+            socket.on("all_players_ready", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> setCanStart(args));
+                }
             });
 
             socket.connect();
@@ -493,11 +517,9 @@ public class App extends Application {
             });
         }
 
-
     }
 
     private void onPlayersConnected(Object... args) throws JSONException {
-        
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
             JSONArray usernamesArray = new JSONArray();
@@ -510,19 +532,20 @@ public class App extends Application {
                 Object value = jsonObject.get(key);
                 usernamesArray.put(value);
                 keysList.add(key);
-                clientdIDs.put(key,(String)value);
+                clientdIDs.put(key, (String) value);
             }
+            setStartButton();
 
             // Map<String, String> abc = (Map) ;
-              
+
             try {
                 StringBuilder usersStringBuilder = new StringBuilder();
                 for (int i = 0; i < usernamesArray.length(); i++) {
                     String username = usernamesArray.getString(i);
                     String key = keysList.get(i);
-                    if(key.equals(hostID)){
+                    if (key.equals(hostID)) {
                         usersStringBuilder.append(username).append(" Online").append(" Host").append("\n");
-                    } else{
+                    } else {
                         usersStringBuilder.append(username).append(" Online").append("\n");
                     }
                 }
@@ -538,15 +561,30 @@ public class App extends Application {
         }
     }
 
-    public void createHost(Object... args){
-                hostID = args[0].toString();
-                if(clientID.equals(hostID)){
-                    isHost = true;
-                }
+    public void createHost(Object... args) {
+        hostID = args[0].toString();
+        if (clientID.equals(hostID)) {
+            isHost = true;
+        }
+        setStartButton();
     }
 
-    public void getPlayerID(Object... args){
+    public void getPlayerID(Object... args) {
         clientID = args[0].toString();
+    }
+
+    public void setCanStart(Object... args) {
+        canStart = args[0].toString().equals("true");
+        setStartButton();
+    }
+
+    public void setGameStart(Stage primaryStage, Object... args) {
+        gameStart = true;
+        if (gameStart) {
+            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+            road.start(primaryStage);
+            gameStart = false;
+        }
     }
 
     private void setOfflineMode(Stage primaryStage) {
@@ -558,6 +596,27 @@ public class App extends Application {
         offlineModeLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         switchScene(primaryStage, gameScene);
+    }
+
+    private void setStartButton() {
+        if (!isConnected || isHost) {
+            btnStart.setText("Start");
+            btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+            System.out.println(clientdIDs.size());
+            if(canStart || clientdIDs.size() <= 1){
+                btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
+                        "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+            }
+        } else if (!playerReady) {
+            btnStart.setText("Not Ready");
+            btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+        } else {
+            btnStart.setText("Ready");
+            btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+        }
     }
 
     private void switchScene(Stage stage, Scene scene) {
