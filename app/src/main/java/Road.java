@@ -739,7 +739,7 @@ public class Road extends Application{
         long timeNow = System.currentTimeMillis();
         deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
-        double step = 1.0 / FPS/4; 
+        double step = 1.0 / FPS/2; 
         update(step);
         render(ctx);
         lastTime = timeNow;
