@@ -41,7 +41,7 @@ import java.util.*;
 public class Road extends Application{
     private long serialVersionUID = 1L;
     private int FPS = 60;
-    private int WIDTH = 1024;
+    private static int WIDTH = 1024;
     private int HEIGHT = 768;
     private int LANES = 3;
     private int ROAD_WIDTH = 2000;
@@ -70,8 +70,8 @@ public class Road extends Application{
     private double hillOffset = 0;                       // current hill scroll offset
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 200;   
-    private int currentLapTime = 0;
-    private int lastLapTime = 0;
+    private double currentLapTime = 0;
+    private double lastLapTime = 0;
     private int currentLap = 0;
     private int maxLap = 3;
     private int place = 1;
@@ -123,14 +123,15 @@ public class Road extends Application{
     private ComboBox<String> lanesComboBox = new ComboBox<>();
     
     private Sprites SPRITES = new Sprites();
-
-
+    private static double hudScale = 1;                        // scale hud elements (computed)
     private boolean isOfflineMode;
     private String clientID;
     private String username;
     private boolean isHost;
     private Map<String, String> clientIDs;
     private Socket socket;
+
+    private double deltaTime;
 
 
     @Override
@@ -200,9 +201,6 @@ public class Road extends Application{
         });
 
         reset();
-        if(!isOfflineMode){
-            socket.emit("game_start");
-        }
         
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
@@ -323,7 +321,10 @@ public class Road extends Application{
                     System.out.println("CurrentLap: "+currentLap);
                 }
             else {
-                currentLapTime += globalDeltaTime;
+                //currentLapTime += globalDeltaTime;
+                currentLapTime += deltaTime;
+                System.out.println(currentLapTime);
+                System.out.println(deltaTime);
             }
         }
     }
@@ -736,9 +737,9 @@ public class Road extends Application{
 
     public void frame(GraphicsContext ctx) {
         long timeNow = System.currentTimeMillis();
-        double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
+        deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         globalDeltaTime += deltaTime;
-        double step = 1.0 / FPS/2; 
+        double step = 1.0 / FPS/4; 
         update(step);
         render(ctx);
         lastTime = timeNow;
@@ -772,34 +773,34 @@ public class Road extends Application{
             double canvasHeight = HEIGHT;
 
             ctx.setFill(Color.RED);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 60));
-            ctx.fillText("RACE FINISHED", canvasWidth / 3.5 , canvasHeight / 4);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 60 * hudScale));
+            ctx.fillText("RACE FINISHED", canvasWidth / 3.5, canvasHeight / 4);
 
 
             ctx.setFill(Color.WHITE);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Beispiel für die Schriftgröße und Schriftart
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Beispiel für die Schriftgröße und Schriftart
             for (int i = 0; i < finishedPlayers.size(); i++) {
                 String playerLabel = (i + 1)+ "# " + finishedPlayers.get(i);
 
                 Text text = new Text(playerLabel);
-                text.setFont(Font.font("Arial", FontWeight.BOLD, 20)); // Schriftgröße und Schriftart festlegen
+                text.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Schriftgröße und Schriftart festlegen
                 double textWidth = text.getBoundsInLocal().getWidth();
                 double textHeight = text.getBoundsInLocal().getHeight();
 
                 ctx.fillText(playerLabel, canvasWidth / 3.5, canvasHeight / 3 + i * textHeight * 1.5);
             }
         }
-    }
+    } 
 
     public void updateHUD(GraphicsContext ctx) {
         ctx.setFill(Color.rgb(255, 0, 0, 0.3));
-        ctx.fillRect(0, 0, WIDTH, HEIGHT / 8);
+        ctx.fillRect(0, 0, WIDTH, (HEIGHT / 8));
 
         ctx.setFill(Color.BLACK);
-        ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        ctx.fillText((int) speed / 100 + " Km/h", 0, 20);
-        ctx.fillText("Last Lap: " +  (lastLapTime/1000) + " Sekunden", 0, 45); // #TODO
-        ctx.fillText(currentLap + "/4 Laps", 0, 70);
+        ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale));
+        ctx.fillText((int) speed / 100 + " Km/h", 0, 20 * hudScale);
+        ctx.fillText("Last Lap: " +  (String.format("%.2f", lastLapTime)) + " Sekunden", 0, 45 * hudScale);
+        ctx.fillText(currentLap + "/4 Laps", 0, 70 * hudScale);
     
         double nitroHud = nitro / 100;
         double maxNitroHud = maxNitro / 100;
@@ -807,38 +808,51 @@ public class Road extends Application{
         double totalBlackBarWidth = (50 * 10) + 20; 
     
         ctx.setFill(Color.BLACK);
-        ctx.fillRect(300 - 10, 25 - 10, totalBlackBarWidth, 40 + 20);
+        ctx.fillRect(300 * hudScale - 10 * hudScale, 25 * hudScale - 10 * hudScale, totalBlackBarWidth * hudScale, (40 + 20) * hudScale);
     
         ctx.setStroke(Color.BLACK);
-        ctx.setLineWidth(5); 
-        ctx.strokeRect(300, 25, (50 * 10) * nitroHud, 40);
+        ctx.setLineWidth(5 * hudScale); 
+        ctx.strokeRect(300 * hudScale, 25 * hudScale, (50 * 10) * nitroHud * hudScale, 40 * hudScale);
     
         if (nitroRecharge) {
             ctx.setFill(Color.rgb(255, 0, 0));
         } else {
             ctx.setFill(Color.rgb(77, 187, 255));
         }
-        ctx.fillRect(300, 25, (50 * 10) * nitroHud, 40);
+        ctx.fillRect(300 * hudScale, 25 * hudScale, (50 * 10) * nitroHud * hudScale, 40 * hudScale);
     
         ctx.setFill(Color.BLACK);
         ctx.setGlobalAlpha(0.5);
-        ctx.fillRect(300, 25, (50 * 10) * maxNitroHud, 40);
+        ctx.fillRect(300 * hudScale, 25 * hudScale, (50 * 10) * maxNitroHud * hudScale, 40 * hudScale);
         ctx.setGlobalAlpha(1.0);
     
         if (nitroRecharge) {
             ctx.setFill(Color.rgb(255, 0, 0));
-            ctx.drawImage(nitroBottleEmpty, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
+            ctx.drawImage(nitroBottleEmpty, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale, (13 * 2.5) * hudScale);
         } else {
             ctx.setFill(Color.rgb(77, 187, 230));
-            ctx.drawImage(nitroBottle, 295 + 550, 30, 40 * 2.5, 13 * 2.5);
+            ctx.drawImage(nitroBottle, (295 + 550) * hudScale, 30 * hudScale, (40 * 2.5) * hudScale, (13 * 2.5) * hudScale);
         }
     
         if (App.getOfflineMode()) { 
             ctx.setFill(Color.RED);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-            ctx.fillText(place + ".", 0, 95);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24 * hudScale));
+            ctx.fillText(place + ".", 0, 95 * hudScale);
         }
     }
+
+    public static double getWindowWidth() { 
+        return WIDTH;
+    }
+
+    public static double getHudScale() {
+        return hudScale;
+    }
+
+    public static void setHudScale(double hudScale) {
+        Road.hudScale = hudScale;
+    } 
+
 
     public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username, Socket socket) {
         this.isOfflineMode = isOfflineMode;

@@ -87,6 +87,7 @@ public class App extends Application {
     private boolean playerReady = false;
     private boolean gameStart = false;
     private boolean canStart = false;
+    private boolean gameStart2 = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -135,11 +136,14 @@ public class App extends Application {
         connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         btnStart = new Button();
-
+        setStartButton();
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
                 Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
                 road.start(primaryStage);
+                if(isConnected){
+                    socket.emit("game_start");
+                }
             } else if (!playerReady && !isHost) {
                 playerReady = true;
                 socket.emit("player_ready", playerReady);
@@ -312,6 +316,27 @@ public class App extends Application {
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         resolutionDropdown.setMaxHeight(400);
 
+        resolutionDropdown.setOnAction(event -> {
+            if (resolutionDropdown.getValue() != "High 1024x768" ) {
+                double hudScale = 1.0;
+                switch (resolutionDropdown.getValue()) {
+                    case "Low 480x360":
+                        hudScale = 480 / Road.getWindowWidth();
+                        break;
+
+                    case "Medium 640x480":
+                        hudScale = 640 / Road.getWindowWidth();
+                        break;
+
+                    case "Fine 1280x960":
+                        hudScale = 1280 / Road.getWindowWidth();
+                            break;
+                }
+                Road.setHudScale(hudScale);
+                System.out.println("HUD Scale: " + hudScale);
+            }
+        });
+
         CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
         fullscreenCheckBox.setSelected(false); // Standardwert setzen
         fullscreenCheckBox
@@ -330,6 +355,7 @@ public class App extends Application {
 
                 // Set the resolution to the maximum width and height
                 resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
+                Road.setHudScale(maxResolutionWidth / Road.getWindowWidth());
                 isFullscreen = true;
             } else {
                 isFullscreen = false;
@@ -419,7 +445,7 @@ public class App extends Application {
                     .setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username)))
                     .build();
 
-            socket = IO.socket("http://35.246.239.15:3000/", options);
+            socket = IO.socket("http://35.246.239.15:300/", options);
 
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
@@ -580,10 +606,10 @@ public class App extends Application {
 
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
-        if (gameStart) {
+        if (gameStart && !gameStart2) {
             Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
             road.start(primaryStage);
-            gameStart = false;
+            gameStart2 = true;
         }
     }
 
@@ -600,6 +626,7 @@ public class App extends Application {
 
     private void setStartButton() {
         if (!isConnected || isHost) {
+            System.out.println("Host");
             btnStart.setText("Start");
             btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
                     "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
