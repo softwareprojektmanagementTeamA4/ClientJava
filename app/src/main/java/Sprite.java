@@ -1,15 +1,14 @@
-import javafx.scene.image.Image;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.WritableImage;
+import java.io.Serializable;
 
 
-public class Sprite {
+public class Sprite implements Serializable {
         private double x;
         private double y;
         private double w;
         private double h;
         private double offset;
         private Sprite source;
+        private String name;
 
         public Sprite(double x, double y, double w, double h) {
             this.x = x;
@@ -21,6 +20,14 @@ public class Sprite {
         public Sprite(double offset, Sprite source) {
             this.offset = offset;
             this.source = source;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
 
         public double getX() {
@@ -54,10 +61,4 @@ public class Sprite {
             this.offset = offset;
         }
 
-        public Image getImage() { 
-        Image spriteSheet = new Image("file:src/main/java/images/sprites.png");
-        PixelReader pixelReader = spriteSheet.getPixelReader();
-        WritableImage croppedImage = new WritableImage(pixelReader, (int) x, (int) y, (int) w, (int) h);
-        return croppedImage;
-        }
     }

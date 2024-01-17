@@ -137,7 +137,8 @@ public class App extends Application {
                 "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px; ");
 
         btnStart.setOnAction(event -> {
-            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username);
+            socket.emit("game_start");
+            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
             road.start(primaryStage);
         });
 
@@ -552,6 +553,7 @@ public class App extends Application {
     private void setOfflineMode(Stage primaryStage) {
         System.out.println("Offline-Modus");
         isConnected = false;
+        isHost = true;
         serverStatus.setText("Offline-Modus: Keine Verbindung zum Server");
         offlineModeLabel.setText("Offlinemode");
         offlineModeLabel.setVisible(true);

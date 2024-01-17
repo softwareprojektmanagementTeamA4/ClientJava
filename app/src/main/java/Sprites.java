@@ -185,4 +185,29 @@ public static Sprite PLAYER_RIGHT = new Sprite(995, 531, 80, 41);
     public Sprite getPlant(int index) {
         return PLANTS.get(index);
     }
+
+    static Sprite[] allCarSprites = new Sprite[] {
+        CAR01, CAR02, CAR03, CAR04, TRUCK, SEMI
+    };
+
+
+    public static String getSpriteName(double x, double y, double w, double h) {
+        for (int i = 0; i < allCarSprites.length; i++) {
+            Sprite s = allCarSprites[i];
+            if (s.getX() == x && s.getY() == y && s.getW() == w && s.getH() == h) {
+                if (i < 4)
+                    return "CAR0" + (i + 1);
+                else if (i == 4)
+                    return "TRUCK";
+                else if (i == 5)
+                    return "SEMI";
+                else {
+                    return "unknown";
+                }
+            }
+                    
+        }
+        return "unknown";
+    }
+    
 }

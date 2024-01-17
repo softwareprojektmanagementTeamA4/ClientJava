@@ -173,12 +173,13 @@ public class Render {
         double destY,
         double steer,
         double updown,
-        boolean nitro
+        boolean nitro,
+        int playerNum
 ) {
     List<Integer> intList = new ArrayList<>(List.of(-1, 1));
     double bounce = (1.5 * Math.random() * speedPercent * resolution) * util.randomChoice(intList);
     
-    Sprite playerSprite;
+    Sprite playerSprite = null;
 
     /*if (steer < 0)
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
@@ -186,22 +187,61 @@ public class Render {
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
     else
         playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;*/
-
-    if (steer < 0) {
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT : SPRITES.PLAYER_1_LEFT;
-        if (nitro && !Road.getNitroRecharge()) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT_NITRO : SPRITES.PLAYER_1_LEFT_NITRO;
-        }
-    } else if (steer > 0) {
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
-        if (nitro && !Road.getNitroRecharge()) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_1_RIGHT_NITRO;
-        }
-    } else {
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;
-        if (nitro && !Road.getNitroRecharge()) {
-            playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_1_STRAIGHT_NITRO;
-        }
+    switch (playerNum) {
+        case 1:
+            if (steer < 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT : SPRITES.PLAYER_1_LEFT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_LEFT_NITRO : SPRITES.PLAYER_1_LEFT_NITRO;
+                }
+            } else if (steer > 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_RIGHT : SPRITES.PLAYER_1_RIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_1_RIGHT_NITRO;
+                }
+            } else {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_STRAIGHT : SPRITES.PLAYER_1_STRAIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_1_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_1_STRAIGHT_NITRO;
+                }
+            }
+            break;
+        case 2:
+            if (steer < 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_LEFT : SPRITES.PLAYER_2_LEFT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_LEFT_NITRO : SPRITES.PLAYER_2_LEFT_NITRO;
+                }
+            } else if (steer > 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_RIGHT : SPRITES.PLAYER_2_RIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_2_RIGHT_NITRO;
+                }
+            } else {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_STRAIGHT : SPRITES.PLAYER_2_STRAIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_2_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_2_STRAIGHT_NITRO;
+                }
+            }
+            break;
+        case 3:
+            if (steer < 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_LEFT : SPRITES.PLAYER_3_LEFT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_LEFT_NITRO : SPRITES.PLAYER_3_LEFT_NITRO;
+                }
+            } else if (steer > 0) {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_RIGHT : SPRITES.PLAYER_3_RIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_RIGHT_NITRO : SPRITES.PLAYER_3_RIGHT_NITRO;
+                }
+            } else {
+                playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_STRAIGHT : SPRITES.PLAYER_3_STRAIGHT;
+                if (nitro && !Road.getNitroRecharge()) {
+                    playerSprite = (updown > 0) ? SPRITES.PLAYER_3_UPHILL_STRAIGHT_NITRO : SPRITES.PLAYER_3_STRAIGHT_NITRO;
+                }
+            }
+            break;
     }
 
     sprite(

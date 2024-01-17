@@ -32,6 +32,11 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import java.net.URISyntaxException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,7 +45,7 @@ import java.util.*;
 
 public class Road extends Application{
     private long serialVersionUID = 1L;
-    private int FPS = 60;
+    private int FPS = 55;
     private int WIDTH = 1024;
     private int HEIGHT = 768;
     private int LANES = 3;
@@ -51,7 +56,7 @@ public class Road extends Application{
     private int DRAW_DISTANCE = 300;
     private int FIELD_OF_VIEW = 100;
     private int FOG_DENSITY = 5;
-    private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / FPS);
+    private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / (FPS + 5)) ;
     private double ACCEL = MAX_SPEED / 5;
     private double BREAKING = -MAX_SPEED;
     private double DECEL = -MAX_SPEED / 5;
@@ -61,7 +66,6 @@ public class Road extends Application{
     private double CAMERA_DEPTH;
     private double resolution; // scaling factor to provide resolution independence (computed)
     private double globalDeltaTime = 0;
-    private long lastTime = 0;
     private double centrifugal_force = 0.3;        // centrifugal force multiplier when going around curves
     private double skySpeed = 0.001;                  // background sky layer scroll speed when going around curve (or up hill)
     private double hillSpeed = 0.002;                 // background hill layer scroll speed when going around curve (or up hill)
@@ -69,12 +73,14 @@ public class Road extends Application{
     private double skyOffset = 0;                       // current sky scroll offset
     private double hillOffset = 0;                       // current hill scroll offset
     private double treeOffset = 0;                       // current tree scroll offset
-    private int totalCars = 200;   
+    private int totalCars = 100;   
     private int currentLapTime = 0;
     private int lastLapTime = 0;
     private int currentLap = 0;
     private int maxLap = 3;
-    private int place = 1;
+    private int place;
+    private Socket socket;
+    private int playerNum = 1;
 
     private double currentRoadWidth = 0;
     private double currentCameraHeight = 0;
@@ -105,7 +111,12 @@ public class Road extends Application{
 
     private ArrayList<Segment> segments = new ArrayList<>();
     private ArrayList<Car> cars = new ArrayList<>();
+    private Object playerCarsLock = new Object();
+    private Object npcCarsLock = new Object();
+    private ArrayList<Car> playerCars = new ArrayList<>();
     private ArrayList<String> finishedPlayers = new ArrayList<>();
+    private JSONArray player_start_positions = new JSONArray();
+    // private ArrayList<Map<String, String>> player_start_positions = new ArrayList<>();
 
     private Image background = new Image("file:src/main/java/images/background.png");
     private Image sprites = new Image("file:src/main/java/images/spritesheet.png");
@@ -130,6 +141,7 @@ public class Road extends Application{
     private String username;
     private boolean isHost;
     private Map<String, String> clientIDs;
+    private long lastTime = System.currentTimeMillis();
 
 
     @Override
@@ -198,13 +210,13 @@ public class Road extends Application{
             }
         });
         reset();
+        System.out.println("Starte Spiel");
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 
                 frame(ctx);
-                endScreen(ctx);
-                updateHUD(ctx);
+
             }
         };
         gameLoop.start();
@@ -219,11 +231,202 @@ public class Road extends Application{
 
     }
 
+
+    //=========================================================================
+    // SocketIO Eventhandler
+    //=========================================================================
+    private void socketIOEventHandler() {
+        /**
+         * SocketIO Eventhandler for receiving data from the server
+         */
+
+        // Receive the player Car data from the server
+        socket.on("receive_data", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> {
+                    JSONObject data = (JSONObject) args[0];
+                    String key = (String)data.keys().next();
+                    Car car = null;
+                    try {
+                        // Deserialize the car data
+                        data = data.getJSONObject(key);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        car = objectMapper.readValue(data.toString(), Car.class);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    synchronized (playerCarsLock) {
+                        // Update the current car data
+                        for (int i = 0; i < playerCars.size(); i++) {
+                            Car existingCar = playerCars.get(i);
+                            if (existingCar.getId().equals(car.getId())) {
+                                playerCars.set(i, car);
+                                return;
+                            }
+                        }
+                        playerCars.add(car);
+                    }
+                });
+            }
+        });
+
+        // Receive the player order from server
+        socket.on("receive_order", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> {
+                        JSONArray data = (JSONArray) args[0];
+                        try {
+                            // Deserialize the player order
+                            for (int i = 0; i < data.length(); i++) {
+                                JSONObject element = data.getJSONObject(i);
+                                String id = element.getString("id");
+                                if (id.equals(clientID)) {
+                                    place = data.length() - i;
+                                }
+                            }
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                });
+            }
+        });
+
+        // Receive npc cardata
+        socket.on("receive_npc_car_data", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> {
+                    if (isHost || isOfflineMode) return;
+                    JSONArray data = (JSONArray) args[0];
+                    
+                    cars.clear();
+                    try {
+                        // Deserialize the npc car data
+                        for (int i = 0; i < data.length(); i++) {
+                            JSONObject element = data.getJSONObject(i);
+                            JSONArray sprite = (JSONArray) element.get("sprite");
+                            JSONObject source = (JSONObject) sprite.get(1);
+                            Sprite carSprite = new Sprite(((Integer)source.get("x")).doubleValue(), ((Integer) source.get("y")).doubleValue(), ((Integer) source.get("w")).doubleValue(), ((Integer) source.get("h")).doubleValue());
+                            // Sprite sprite = new Sprite();
+                            Car car = new Car(element.getDouble("offset"), element.getDouble("z"), carSprite, element.getDouble("speed"));
+                            cars.add(car);
+                            putCarsIntoSegments();
+                    }
+                    } catch (Exception e) {
+                    e.printStackTrace();
+                    }
+                });
+            }
+        });
+
+        // Receive the player start positions
+        socket.on("receive_start_position", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Platform.runLater(() -> {
+                    JSONArray data = (JSONArray) args[0];
+                    try {
+                        // Deserialize the player start positions
+                        for (int i = 0; i < data.length(); i++) {
+                            JSONObject element = data.getJSONObject(i);
+                            if (!(element.getString("id").equals(clientID))) continue;
+                            playerX = element.getDouble("offset");
+                            position = element.getDouble("z");
+                            playerNum = element.getInt("player_num");
+                            System.out.println("PlayerNum: "+playerNum);
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        });
+
+
+    }
+
+    private void putCarsIntoSegments() {
+        synchronized (npcCarsLock) {
+            for (Segment segment : segments) {
+                segment.getCars().clear();
+            }
+            for (Car car : cars) {
+                Segment segment = findSegment(car.getZ());
+                segment.getCars().add(car);
+            }
+        }
+    }
+
+    private void send_data() {
+        /**
+         * Sends the player data to the server
+         */
+        try {
+            socket.emit("player_data", new JSONObject()
+                    .put("playerX", playerX)
+                    .put("player_num", playerNum)
+                    .put("nitro", nitroActive)
+                    .put("id", clientID)
+                    .put("position", position)
+                    .put("speed", speed)
+                    .put("current_lap", currentLap)
+                    .put("username", username)
+            );
+            
+
+            if (isHost) {
+                try {
+                    // ObjectMapper objectMapper = JsonMapper.builder()
+                    //     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                    //     .build();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String jsonCarArray = objectMapper.writeValueAsString(cars);
+
+                    JSONArray jsonArray = new JSONArray();
+                    for (Car car : cars) {
+                        JSONObject jsonObject = new JSONObject()
+                            .put("z", car.getZ())
+                            .put("speed", car.getSpeed())
+                            .put("offset", car.getOffset())
+                            .put("percent", car.getPercent())
+                            .put("sprite", new JSONArray()
+                                .put(Sprites.getSpriteName(car.getSprite().getX(), car.getSprite().getY(), car.getSprite().getW(), car.getSprite().getH()))
+                                .put(new JSONObject()
+                                    .put("x", car.getSprite().getX())
+                                    .put("y", car.getSprite().getY())
+                                    .put("w", car.getSprite().getW())
+                                    .put("h", car.getSprite().getH())
+                                )
+                            );
+                        jsonArray.put(jsonObject);
+                    }
+
+                    socket.emit("npc_car_data", jsonArray);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } 
+        
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+    }
+
+    
+
     //=========================================================================
     // UPDATE THE GAME WORLD
     //=========================================================================
 
     private void update(double delta_time) {
+
+        send_data();
+        
         Car car;
         double carW;
         Sprite sprite;
@@ -235,7 +438,7 @@ public class Road extends Application{
         double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1) in 1 second
         double startPosition = position;
 
-        updateCars(delta_time, playerSegment, playerW);
+        if (isHost) updateCars(delta_time, playerSegment, playerW);
 
         position = util.increase(position, delta_time * speed, TRACK_LENGTH);
 
@@ -305,9 +508,32 @@ public class Road extends Application{
                 }
             }
         }
+
+        // Collision with other players
+        for (int i = 0; i < playerCars.size(); i++) {
+            Car otherPlayer = playerCars.get(i);
+            if (otherPlayer.getId().equals(clientID)) continue;
+            Segment otherPlayerSegment = findSegment(otherPlayer.getZ() + playerZ);
+            if (playerSegment != otherPlayerSegment) continue;
+
+            double otherPlayerW = SPRITES.PLAYER_STRAIGHT.getW() * SPRITES.SCALE;
+            if (speed > otherPlayer.getSpeed()) {
+                if (util.overlap(playerX, playerW, otherPlayer.getOffset(), otherPlayerW, 0.8)) {
+                    speed = otherPlayer.getSpeed() * (otherPlayer.getSpeed() / speed);
+                    position = util.increase(otherPlayer.getZ(), -playerZ, TRACK_LENGTH);
+                    break;
+                }
+            }
+        }
+
+
             
         playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
         speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
+
+        if (!isOfflineMode) {
+            send_data();
+        }
 
         if (position > playerZ) {
             if (currentLapTime != 0 && (startPosition < playerZ)) { 
@@ -453,9 +679,12 @@ public class Road extends Application{
             
             maxy = segment.getP1().getScreen().getY();
             }
+
+            // Render Segment
             for(int n = (DRAW_DISTANCE - 1); n > 0; n--) {
                 Segment segment = segments.get((baseSegment.getIndex() + n) % segments.size());
 
+                // NPC Cars
                 for(int i = 0; i < segment.getCars().size(); i++) {
                     car = segment.getCars().get(i);
                     sprite = car.getSprite();
@@ -465,12 +694,68 @@ public class Road extends Application{
                     render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites,  car.getSprite(), spriteScale, spriteX, spriteY, -0.5, -1, segment.getClip());
                 }
 
+                // Side Sprites
                 for(int i = 0; i < segment.getSprites().size(); i++) {
                     sprite = segment.getSprites().get(i);
                     spriteScale = segment.getP1().getScreen().getScale();
                     spriteX = segment.getP1().getScreen().getX() + (spriteScale * sprite.getOffset() * ROAD_WIDTH * WIDTH / 2);
                     spriteY = segment.getP1().getScreen().getY();
                     render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH,sprites, sprite.getSource(), spriteScale, spriteX, spriteY,  (sprite.getOffset() < 0 ? -1 : 0), -1, segment.getClip());
+                }
+
+                // Render other players (if multiplayer)
+                if (!isOfflineMode) {
+                    synchronized (playerCarsLock) {
+                        for (int i = 0; i < playerCars.size(); i++) {
+                            if (playerCars.get(i).getId().equals(clientID)) continue;
+                            Car otherCar = playerCars.get(i);
+                            Segment otherCarSegment = findSegment(otherCar.getZ() + playerZ);
+                            Sprite otherCarSprite = null;
+
+                            if (otherCar.getCurrent_lap() > maxLap) {
+                                if (finishedPlayers.contains(otherCar.getUsername()))
+                                    finishedPlayers.add(otherCar.getUsername());
+                            }
+                            
+
+                            if (segment == otherCarSegment) {
+                                int otherPlayerNum = otherCar.getPlayer_num();
+                                double otherCarPercent = util.percentRemaining(otherCar.getZ() + playerZ, SEGMENT_LENGTH);
+
+                                if (otherCar.getIsNitro()) {
+                                    switch (otherPlayerNum) {
+                                        case 1:
+                                            otherCarSprite = Sprites.PLAYER_1_STRAIGHT_NITRO;
+                                            break;
+                                        case 2:
+                                            otherCarSprite = Sprites.PLAYER_2_STRAIGHT_NITRO;
+                                            break;
+                                        case 3:
+                                            otherCarSprite = Sprites.PLAYER_3_STRAIGHT_NITRO;
+                                            break;
+                                    }
+                                }
+                                else {
+                                    switch (otherPlayerNum) {
+                                        case 1:
+                                            otherCarSprite = Sprites.PLAYER_1_STRAIGHT;
+                                            break;
+                                        case 2:
+                                            otherCarSprite = Sprites.PLAYER_2_STRAIGHT;
+                                            break;
+                                        case 3:
+                                            otherCarSprite = Sprites.PLAYER_3_STRAIGHT;
+                                            break;
+                                    }
+                                }
+                                // Sprite X and Y using interpolate
+                                double otherSpriteScale = util.interpolate(otherCarSegment.getP1().getScreen().getScale(), otherCarSegment.getP2().getScreen().getScale(), otherCarPercent);
+                                double otherCarSpriteX = util.interpolate(otherCarSegment.getP1().getScreen().getX(), otherCarSegment.getP2().getScreen().getX(), otherCarPercent) + (otherSpriteScale * otherCar.getOffset() * ROAD_WIDTH * WIDTH / 2);
+                                double otherCarSpriteY = util.interpolate(otherCarSegment.getP1().getScreen().getY(), otherCarSegment.getP2().getScreen().getY(), otherCarPercent);
+                                render.sprite(ctx, WIDTH, HEIGHT, resolution, ROAD_WIDTH, sprites, otherCarSprite, otherSpriteScale, otherCarSpriteX, otherCarSpriteY, -0.5, -1, segment.getClip());
+                            }
+                        }
+                    }
                 }
 
                 if (segment == playerSegment) {
@@ -487,7 +772,8 @@ public class Road extends Application{
                         (HEIGHT / 2) - (CAMERA_DEPTH / playerZ * util.interpolate(playerSegment.getP1().getCamera().getY(), playerSegment.getP2().getCamera().getY(), playerPercent) * HEIGHT / 2),
                         speed * (keyLeft ? -1 : keyRight ? 1 : 0),
                         playerSegment.getP2().getWorld().getY() - playerSegment.getP1().getWorld().getY(),
-                        nitrokey);
+                        nitrokey,
+                        playerNum);
                 }
             }
     }
@@ -646,8 +932,7 @@ public class Road extends Application{
         addStraight(null);
         addDownhillToEnd(null);
 
-        resetSprites();
-        resetCars();
+
         
         segments.get(findSegment(playerZ).getIndex() + 2).setColor(Colors.getRoadStart());
         segments.get(findSegment(playerZ).getIndex() + 3).setColor(Colors.getRoadStart());
@@ -702,6 +987,32 @@ public class Road extends Application{
 
     }
 
+    public JSONArray reset_player_start_positions() {
+        // Clear the player start positions
+        player_start_positions = new JSONArray();
+        Double offset = -0.6;
+        int player_num = 1;
+
+        for (String key : clientIDs.keySet()) {
+            try {
+                JSONObject new_player_start_positions = new JSONObject()
+                    .put("id", key)
+                    .put("offset", offset)
+                    .put("z", 0)
+                    .put("player_num", player_num)
+                    .put("speed", 0);
+                player_start_positions.put(new_player_start_positions);
+                offset += 0.66;
+                player_num += 1;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        socket.emit("player_start_positions_data", player_start_positions);
+        return player_start_positions;
+    }
+
+
     public void resetCars() {
         cars.clear();
         for (int n = 0; n < totalCars; n++) {
@@ -726,16 +1037,73 @@ public class Road extends Application{
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
         resetRoad();
+        resetSprites();
+        
+        if (isHost) {
+            resetCars();
+            if (!isOfflineMode) {
+                reset_player_start_positions();
+                socket.emit("npc_car_data", cars);
+            }
+        }
+        else {
+            if (!isOfflineMode) {
+                socket.emit("request_start_position"); 
+            }
+        }
+        
     }
 
     public void frame(GraphicsContext ctx) {
-        long timeNow = System.currentTimeMillis();
-        double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
-        globalDeltaTime += deltaTime;
-        double step = 1.0 / FPS/2; 
-        update(step);
-        render(ctx);
-        lastTime = timeNow;
+        // long timeNow = System.currentTimeMillis();
+        // double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
+        // globalDeltaTime += deltaTime;
+        // double step = 1.0  / FPS;
+
+        // double drawIntervall = 1000000000.0 / FPS;
+        // double delta = 0;
+        // long lastTime = System.nanoTime();
+        // long currentTime;
+
+        // while (true) {
+        //     currentTime = System.nanoTime();
+        //     delta += (currentTime - lastTime) / drawIntervall;
+        //     lastTime = currentTime;
+        //     if (delta >= 1) {
+        //         update(drawIntervall);
+        //         render(ctx);
+        //         delta --;
+        //     }
+        // }
+
+
+        long now = System.currentTimeMillis();
+        double targetFrameTime = 1.0 / FPS;
+        double delta_time = (now - lastTime) / 1000.0; 
+
+        if (delta_time > targetFrameTime){
+            update(delta_time);
+            render(ctx);
+            endScreen(ctx);
+            updateHUD(ctx);
+            lastTime = now;
+        }
+
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+
+        // long timeNow = System.currentTimeMillis();
+        // double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
+        // globalDeltaTime += deltaTime;
+        // double step = 1.0 / FPS; 
+        // update(step);
+        // render(ctx);
+        // lastTime = timeNow;
+        
     }
 
     //=========================================================================
@@ -834,13 +1202,16 @@ public class Road extends Application{
         }
     }
 
-    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username) {
+    public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username, Socket socket, int playerNum) {
         this.isOfflineMode = isOfflineMode;
         this.clientID = clientID;
         this.clientIDs = clientIDs;
         this.isHost = isHost;
         this.username = username;
-        System.out.println(isOfflineMode+" "+clientID+" "+clientIDs+" "+isHost+" "+username);
+        this.socket = socket;
+        //this.playerNum = playerNum;
+        //System.out.println(isOfflineMode+" "+clientID+" "+clientIDs+" "+isHost+" "+username);
+        socketIOEventHandler();
     }
 
 }
