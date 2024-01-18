@@ -20,7 +20,7 @@ public class Render {
     //=========================================================================
 
     public void background(GraphicsContext gc, Image background, int width, int height,
-                                  Background background2, double rotation, double offset) //bennenung letzter parameter?? 
+                                  Background background2, double rotation, double offset) 
                                   {
 
         
@@ -140,7 +140,6 @@ public class Render {
             double offsetY,
             double clipY
     ) {
-        // Skalierung für die Projektion UND relativ zur roadWidth (für tweakUI)
         double destW = (sprite.getW() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
         double destH = (sprite.getH() * scale * width / 2) * (SPRITES.getScale() * roadWidth);
 
@@ -184,12 +183,6 @@ public class Render {
     
     Sprite playerSprite = null;
 
-    /*if (steer < 0)
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_LEFT : SPRITES.PLAYER_LEFT;
-    else if (steer > 0)
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_RIGHT : SPRITES.PLAYER_RIGHT;
-    else
-        playerSprite = (updown > 0) ? SPRITES.PLAYER_UPHILL_STRAIGHT : SPRITES.PLAYER_STRAIGHT;*/
     switch (playerNum) {
         case 1:
             if (steer < 0) {
@@ -260,7 +253,7 @@ public class Render {
             destY + bounce,
             -0.5,
             -1,
-            0 // Not sure about clipY
+            0 
     );
 }
     

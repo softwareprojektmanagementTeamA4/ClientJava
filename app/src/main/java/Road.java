@@ -44,7 +44,6 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class Road extends Application {
-    private long serialVersionUID = 1L;
     private int FPS = 55;
     private static int WIDTH = 1024;
     private int HEIGHT = 768;
@@ -65,7 +64,6 @@ public class Road extends Application {
     private double TRACK_LENGTH;
     private double CAMERA_DEPTH;
     private double resolution; // scaling factor to provide resolution independence (computed)
-    private double globalDeltaTime = 0;
     private double centrifugal_force = 0.3;        // centrifugal force multiplier when going around curves
     private double skySpeed = 0.001;                  // background sky layer scroll speed when going around curve (or up hill)
     private double hillSpeed = 0.002;                 // background hill layer scroll speed when going around curve (or up hill)
@@ -81,11 +79,6 @@ public class Road extends Application {
     private int place;
     private int playerNum = 1;
 
-    private double currentRoadWidth = 0;
-    private double currentCameraHeight = 0;
-    private double currentDrawDistance = 0;
-    private double currentFieldOfView = 0;
-    private double currentFogDensity = 0;
 
     private String path_background_sky = ("background/sky.png");
     private String path_background_hills = ("background/hills.png");
@@ -116,7 +109,6 @@ public class Road extends Application {
     private ArrayList<Car> playerCars = new ArrayList<>();
     private ArrayList<String> finishedPlayers = new ArrayList<>();
     private JSONArray player_start_positions = new JSONArray();
-    // private ArrayList<Map<String, String>> player_start_positions = new ArrayList<>();
 
     private Image background = new Image("file:src/main/java/images/background.png");
     private Image sprites = new Image("file:src/main/java/images/spritesheet.png");
@@ -126,15 +118,8 @@ public class Road extends Application {
     Util util = new Util();
     Render render = new Render();
 
-    HashMap<String, Image> images = new HashMap<>();
-    ImageLoader imageLoader = new ImageLoader();
-
-    private boolean[] keysPressed = new boolean[256]; // Array zur Verfolgung der gedrückten Tasten
-
-    private ComboBox<String> lanesComboBox = new ComboBox<>();
-
     private Sprites SPRITES = new Sprites();
-    private static double hudScale = 1; // scale hud elements (computed)
+    private static double hudScale = 1;
     private boolean isOfflineMode;
     private String clientID;
     private String username;
@@ -142,10 +127,7 @@ public class Road extends Application {
     private Map<String, String> clientIDs;
     private long lastTime = System.currentTimeMillis();
     private Socket socket;
-
     AnimationTimer gameLoop;
-
-    private double deltaTime;
 
     @Override
     public void start(Stage primaryStage) {
@@ -1069,13 +1051,12 @@ public class Road extends Application {
     // =========================================================================
     // THE GAME LOOP
     // =========================================================================e
-    // Segmprivate void gameLoop(GraphicsContext gtx) {
 
         private void reset() {
             CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
             playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
             resolution = HEIGHT / 480;
-            currentLap = 4;
+            currentLap = 0;
             resetRoad();
             resetSprites();
     
@@ -1095,28 +1076,6 @@ public class Road extends Application {
         }
 
     public void frame(GraphicsContext ctx) {
-        // long timeNow = System.currentTimeMillis();
-        // double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
-        // globalDeltaTime += deltaTime;
-        // double step = 1.0  / FPS;
-
-        // double drawIntervall = 1000000000.0 / FPS;
-        // double delta = 0;
-        // long lastTime = System.nanoTime();
-        // long currentTime;
-
-        // while (true) {
-        //     currentTime = System.nanoTime();
-        //     delta += (currentTime - lastTime) / drawIntervall;
-        //     lastTime = currentTime;
-        //     if (delta >= 1) {
-        //         update(drawIntervall);
-        //         render(ctx);
-        //         delta --;
-        //     }
-        // }
-
-
         long now = System.currentTimeMillis();
         double targetFrameTime = 1.0 / FPS;
         double delta_time = (now - lastTime) / 1000.0; 
@@ -1135,22 +1094,13 @@ public class Road extends Application {
             e.printStackTrace();
         }
         
-
-        // long timeNow = System.currentTimeMillis();
-        // double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
-        // globalDeltaTime += deltaTime;
-        // double step = 1.0 / FPS / 2; 
-        // update(step);
-        // render(ctx);
-        // lastTime = timeNow;
-        
     }
 
     // =========================================================================
     // TWEAK UI HANDLERS
     // =========================================================================
 
-    private void getSettingsFromApp(Stage primaryStage) { // #TODO
+    private void getSettingsFromApp(Stage primaryStage) { 
         ROAD_WIDTH = App.getRoadWidthSliderValue();
         LANES = App.getLanesSliderValue();
         CAMERA_HEIGHT = App.getCameraHeightSliderValue();
@@ -1171,7 +1121,6 @@ public class Road extends Application {
                 finishedPlayers.add(username);
             }
             gameFinished = true;
-            //speed = 0;
             double canvasWidth = WIDTH;
             double canvasHeight = HEIGHT;
 

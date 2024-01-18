@@ -180,9 +180,6 @@ public class App extends Application {
                     road.setSocket(socket);
                 }
                 road.start(primaryStage);
-                //if(isConnected){
-                //    socket.emit("game_start");
-                //}
             } else if (!playerReady && !isHost) {
                 playerReady = true;
                 socket.emit("player_ready", playerReady);
@@ -219,13 +216,13 @@ public class App extends Application {
         btnSettings.setPrefHeight(40);
         btnQuit.setPrefHeight(40);
 
-        buttonGameBox = new VBox(10); // Abstand
+        buttonGameBox = new VBox(10); 
         playersConnectedBox = new VBox(10);
-        buttonGameBox.setAlignment(Pos.CENTER); // Zentrieren der Buttons
+        buttonGameBox.setAlignment(Pos.CENTER); 
         playersConnectedBox.setAlignment(Pos.TOP_LEFT);
         playersConnectedBox.getChildren().add(connectedUsersLabel);
         playersConnectedBox.getChildren().add(offlineModeLabel);
-        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); // Buttons in der Mitte hinzufügen
+        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); 
 
         connectionStatusLabel = new Label();
         connectionStatusLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -243,7 +240,7 @@ public class App extends Application {
             establishConnection(primaryStage);
         });
 
-        VBox reconnectBox = new VBox(10); // HBox für Reconnect-Button und Verbindungsstatuslabel
+        VBox reconnectBox = new VBox(10); 
         reconnectBox.setAlignment(Pos.CENTER);
         reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
 
@@ -260,9 +257,9 @@ public class App extends Application {
 
         logoImageView.setFitWidth(SCREEN_WIDTH);
         logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
-        double logoYOffset = -(SCREEN_HEIGHT / 3); // Halbe Höhe des Bildes nach oben verschieben
+        double logoYOffset = -(SCREEN_HEIGHT / 3);
         logoImageView.setTranslateY(logoYOffset);
-        double logoXOffset = -(SCREEN_WIDTH / 15); // Halbe Breite des Bildes nach links verschieben
+        double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
 
 
@@ -299,7 +296,7 @@ public class App extends Application {
         // Camera Height
         Label cameraHeightLabel = new Label("Camera Height");
         cameraHeightLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider cameraHeightSlider = new Slider(500, 5000, 1000); // Wertebereich für die Kamerahöhe
+        Slider cameraHeightSlider = new Slider(500, 5000, 1000); 
         cameraHeightSlider.setMaxWidth(150);
         cameraHeightSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         cameraHeightSlider.setBlockIncrement(1);
@@ -315,7 +312,7 @@ public class App extends Application {
         // Draw Distance
         Label drawDistanceLabel = new Label("Draw Distance");
         drawDistanceLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider drawDistanceSlider = new Slider(100, 500, 300); // Wertebereich für die Sichtweite
+        Slider drawDistanceSlider = new Slider(100, 500, 300); 
         drawDistanceSlider.setMaxWidth(150);
         drawDistanceSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         drawDistanceSlider.setBlockIncrement(1);
@@ -331,7 +328,7 @@ public class App extends Application {
         // Field of View
         Label fieldOfViewLabel = new Label("Field of View");
         fieldOfViewLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider fieldOfViewSlider = new Slider(80, 140, 100); // Wertebereich für das Sichtfeld
+        Slider fieldOfViewSlider = new Slider(80, 140, 100); 
         fieldOfViewSlider.setMaxWidth(150);
         fieldOfViewSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         TextField fieldOfViewOutput = new TextField("100");
@@ -359,17 +356,17 @@ public class App extends Application {
         fogDensitySlider.valueProperty().addListener(
                 (observable, oldValue, newValue) -> fogDensityOutput.setText(String.valueOf(newValue.intValue())));
 
-        // Lanes Dropdown-Menü
+        // Lanes Dropdown-Menu
         ComboBox<String> lanesDropdown = new ComboBox<>();
         lanesDropdown.getItems().addAll("1 Lane", "2 Lanes", "3 Lanes", "4 Lanes");
         lanesDropdown.setValue("3 Lanes");
         lanesDropdown.setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         lanesDropdown.setMaxHeight(400);
 
-        // Resolution Dropdown-Menü
+        // Resolution Dropdown-Menu
         ComboBox<String> resolutionDropdown = new ComboBox<>();
         resolutionDropdown.getItems().addAll("Low 480x360", "Medium 640x480", "High 1024x768", "Fine 1280x960");
-        resolutionDropdown.setValue("High 1024x768"); // Standardwert setzen
+        resolutionDropdown.setValue("High 1024x768"); 
         resolutionDropdown
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         resolutionDropdown.setMaxHeight(400);
@@ -396,14 +393,13 @@ public class App extends Application {
         });
 
         CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
-        fullscreenCheckBox.setSelected(false); // Standardwert setzen
+        fullscreenCheckBox.setSelected(false); 
         fullscreenCheckBox
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         fullscreenCheckBox.setMaxHeight(400);
 
         fullscreenCheckBox.setOnAction(event -> {
             if (fullscreenCheckBox.isSelected()) {
-                // Find the maximum resolution with a 4:3 aspect ratio
                 Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
                 double screenWidth = screenSize.getWidth();
                 double screenHeight = screenSize.getHeight();
@@ -411,7 +407,7 @@ public class App extends Application {
                 double maxResolutionWidth = Math.min(screenWidth, screenHeight * aspectRatio);
                 double maxResolutionHeight = maxResolutionWidth / aspectRatio;
 
-                // Set the resolution to the maximum width and height
+
                 resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
                 Road.setHudScale(maxResolutionWidth / Road.getWindowWidth());
                 isFullscreen = true;
@@ -501,9 +497,9 @@ public class App extends Application {
 
         logoImageView.setFitWidth(SCREEN_WIDTH);
         logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
-        double logoYOffset = -(SCREEN_HEIGHT / 3); // Halbe Höhe des Bildes nach oben verschieben
+        double logoYOffset = -(SCREEN_HEIGHT / 3); 
         logoImageView.setTranslateY(logoYOffset);
-        double logoXOffset = -(SCREEN_WIDTH / 15); // Halbe Breite des Bildes nach links verschieben
+        double logoXOffset = -(SCREEN_WIDTH / 15); 
         logoImageView.setTranslateX(-logoXOffset);
 
 
@@ -569,7 +565,7 @@ public class App extends Application {
                         try {
                             onPlayersConnected(args);
                         } catch (JSONException e) {
-                            // TODO Auto-generated catch block
+
                             e.printStackTrace();
                         }
                     });
@@ -606,13 +602,11 @@ public class App extends Application {
 
             socket.connect();
         } catch (URISyntaxException e) {
-            // Fehler beim Parsen der URI
             e.printStackTrace();
             Platform.runLater(() -> {
                 System.out.println("KA");
             });
         } catch (Exception e) {
-            // Allgemeiner Fehler
             e.printStackTrace();
             Platform.runLater(() -> {
                 System.out.println("KA");
@@ -627,7 +621,7 @@ public class App extends Application {
             JSONArray usernamesArray = new JSONArray();
             ArrayList<String> keysList = new ArrayList<String>();
 
-            // Iteriere über die Schlüssel und greife auf die Werte zu
+
             Iterator<String> keys = jsonObject.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
@@ -637,8 +631,6 @@ public class App extends Application {
                 clientdIDs.put(key, (String) value);
             }
             setStartButton();
-
-            // Map<String, String> abc = (Map) ;
 
             try {
                 StringBuilder usersStringBuilder = new StringBuilder();
@@ -655,7 +647,7 @@ public class App extends Application {
                 Platform.runLater(() -> {
                     connectedUsersLabel.setText(usersStringBuilder.toString());
                     connectedUsersLabel.setVisible(true);
-                    connectedUsersLabel.getParent().requestLayout(); // Fordert ein erneutes Layout an
+                    connectedUsersLabel.getParent().requestLayout(); 
                 });
             } catch (JSONException e) {
                 e.printStackTrace();

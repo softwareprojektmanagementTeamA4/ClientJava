@@ -16,7 +16,6 @@ public class Hud {
         this.fastLapTime = new SimpleStringProperty();
     }
 
-    // Getter und Setter für speed
     public double getSpeed() {
         return speed.get();
     }
@@ -29,7 +28,6 @@ public class Hud {
         return speed;
     }
 
-    // Getter und Setter für currentLapTime
     public String getCurrentLapTime() {
         return currentLapTime.get();
     }
@@ -42,7 +40,6 @@ public class Hud {
         return currentLapTime;
     }
 
-    // Getter und Setter für lastLapTime
     public String getLastLapTime() {
         return lastLapTime.get();
     }
@@ -55,7 +52,6 @@ public class Hud {
         return lastLapTime;
     }
 
-    // Getter und Setter für fastLapTime
     public String getFastLapTime() {
         return fastLapTime.get();
     }

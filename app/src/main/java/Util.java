@@ -14,10 +14,6 @@ import java.util.List;
 public class Util {
     private static final Random random = new Random();
     public static double increase(double start, double increment, double max) {
-        /*
-         * Erhöhe den Wert um das Inkrement, überschreite aber nicht das Maximum
-         * Laufe um, falls wir das Maximum überschreiten
-         */
         double result = start + increment;
             
         while (result >= max) {
@@ -32,10 +28,6 @@ public class Util {
 
 
     public double accelerate(double current_speed, double increment, double delta_time) {
-        /*
-         * Erhöhe den Speed um das Inkrement, überschreite aber nicht das Maximum
-         * Laufe um, falls wir das Maximum überschreiten
-         */
         return current_speed + (increment * delta_time);
     }
 
@@ -66,7 +58,7 @@ public class Util {
         double worldZ = p.getWorld().getZ();
         p.getCamera().setX((!Double.isNaN(worldX) ? worldX : 0) - cameraX);
         p.getCamera().setY((!Double.isNaN(worldY) ? worldY : 0) - cameraY);
-        p.getCamera().setZ((!Double.isNaN(worldZ) ? worldZ : 0) - cameraZ); // Gucken ob gleiche Funktionalität
+        p.getCamera().setZ((!Double.isNaN(worldZ) ? worldZ : 0) - cameraZ);
         p.getScreen().setScale(cameraDepth / p.getCamera().getZ());
         p.getScreen().setX(Math.round((width / 2) + (p.getScreen().getScale() * p.getCamera().getX() * width / 2)));
         p.getScreen().setY(Math.round((height / 2) - (p.getScreen().getScale() * p.getCamera().getY() * height / 2)));
@@ -101,7 +93,6 @@ public class Util {
             try {
                 return Integer.parseInt(obj.toString());
             } catch (NumberFormatException e) {
-                // Handle the exception or log if needed
             }
         }
         return def;
