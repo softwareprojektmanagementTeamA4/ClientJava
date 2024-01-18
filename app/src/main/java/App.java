@@ -407,7 +407,6 @@ public class App extends Application {
                         break;
                 }
                 Road.setHudScale(hudScale);
-                System.out.println("HUD Scale: " + hudScale);
             }
         });
 
@@ -446,18 +445,6 @@ public class App extends Application {
             selectedLanes = lanesDropdown.getValue();
             selectedResolution = resolutionDropdown.getValue();
             isFullscreen = fullscreenCheckBox.isSelected();
-
-            System.out.println(getRoadWidthSliderValue());
-            System.out.println(getCameraHeightSliderValue());
-            System.out.println(getLanesSliderValue());
-            System.out.println(getFullscreenToggleValue());
-            System.out.println(getFogDensitySliderValue());
-            System.out.println(getFieldOfViewSliderValue());
-            System.out.println(getDrawDistanceSliderValue());
-            System.out.println(getCameraHeightSliderValue());
-            System.out.println(getResolutionSliderValueWidth());
-            System.out.println(getResolutionSliderValueHeight());
-            System.out.println(getFullscreenToggleValue());
 
             saveConfirmationLabel.setText("Einstellungen gespeichert!");
             switchScene(primaryStage, gameScene);
@@ -550,12 +537,10 @@ public class App extends Application {
                             serverStatus.setText("Verbunden mit dem Server");
                             isConnected = true;
                             switchScene(primaryStage, gameScene);
-                            System.out.println("Verbunden mit dem Server");
                         } else {
                             connectionStatusLabel.setText("Connected");
                             connectionStatusLabel.setTextFill(Color.GREEN);
                             connectionStatusLabel.setVisible(true);
-                            System.out.println("Reconnected");
                         }
                     });
                 }
@@ -573,7 +558,6 @@ public class App extends Application {
                                 connectionStatusLabel.setText("Connection Error");
                                 connectionStatusLabel.setTextFill(Color.RED);
                                 connectionStatusLabel.setVisible(true);
-                                System.out.println("fehlerhaft");
                             }
                         });
                         connectionErrorHandled = true;
@@ -627,12 +611,10 @@ public class App extends Application {
         } catch (URISyntaxException e) {
             e.printStackTrace();
             Platform.runLater(() -> {
-                System.out.println("KA");
             });
         } catch (Exception e) {
             e.printStackTrace();
             Platform.runLater(() -> {
-                System.out.println("KA");
             });
         }
 
@@ -736,7 +718,6 @@ public class App extends Application {
     }
 
     private void setOfflineMode(Stage primaryStage) {
-        System.out.println("Offline-Modus");
         isConnected = false;
         isHost = true;
         serverStatus.setText("Offline-Modus: Keine Verbindung zum Server");
@@ -758,11 +739,9 @@ public class App extends Application {
      */
     private void setStartButton() {
         if (!isConnected || isHost) {
-            System.out.println("Host");
             btnStart.setText("Start");
             btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
                     "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
-            System.out.println(clientdIDs.size());
             if (canStart || clientdIDs.size() <= 1) {
                 btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
                         "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
@@ -795,7 +774,6 @@ public class App extends Application {
             stage.setScene(scene);
             stage.show();
         });
-        System.out.println("Szene gewechselt");
     }
 
     public static Scene getGameScene() {
