@@ -108,3 +108,63 @@ Konstruktor initialisiert die Eigenschaften mit Standardwerten
 Methoden zum Abrufen und Setzen der Werte, sowie Zugriff auf die Eigenschaften als Properties
 
 ---
+
+### Ordner Strukturen
+#### Bilder und Ressourcen (Images-Ordner): 
+- Images-Ordner: Alle verwendeten Bilder befinden sich im "Images"-Ordner.  
+- Zugriff und Verwendung: Die Bilder werden direkt geladen, ohne die Verwendung eines speziellen ImageLoaders.
+
+---
+
+###Netzwerk-Kommunikation
+Für die Netzwerkkommunikation wird das Socket.IO-Protokoll und die Socket.IO-Bibliothek in Java verwendet. Hier sind die Schlüsselfunktionen:
+
+Empfang von Spielerdaten (receive_data Event):
+
+Aktualisiert Informationen über andere Spieler im Spiel.
+Verwendet Platform.runLater() für sichere Benutzeroberflächenaktualisierung im JavaFX-Thread.
+Empfang der Spielerreihenfolge (receive_order Event):
+
+Ermittelt die Position des aktuellen Clients in der Reihenfolge der Spieler.
+Empfang von NPC-Auto-Daten (receive_npc_car_data Event):
+
+Speichert NPC-Autodaten lokal und verteilt sie auf entsprechende Straßensegmente.
+Empfang der Spielerstartpositionen (receive_start_position Event):
+
+Speichert die Startposition des Spielers lokal.
+Weitere Funktionen (putCarsIntoSegments, send_data):
+
+putCarsIntoSegments platziert NPC-Autos in den entsprechenden Straßensegmenten.
+send_data sendet Spielerdaten an den Server.
+Das Netzwerkprotokoll ermöglicht zuverlässige Synchronisation und den Austausch von Spielinformationen zwischen Server und Clients. Die wichtigsten Socket.IO-Events sind:
+
+EVENT_CONNECT:
+
+Wird ausgelöst, wenn eine Verbindung zum Server hergestellt wird.
+Aktualisiert die Benutzeroberfläche nach erfolgreicher Verbindung.
+EVENT_CONNECT_ERROR:
+
+Wird ausgelöst, wenn ein Verbindungsfehler auftritt.
+Behandelt Verbindungsfehler und aktualisiert die Benutzeroberfläche entsprechend.
+"playersConnected":
+
+Wird ausgelöst, wenn Spieler mit dem Server verbunden sind.
+Verarbeitet die verbundenen Spielerinformationen und aktualisiert die Benutzeroberfläche.
+"getHostID":
+
+Wird ausgelöst, um die ID des Hosts zu erhalten.
+Setzt den Host basierend auf den erhaltenen Serverinformationen.
+"getPlayerID":
+
+Wird ausgelöst, um die ID des Spielers zu erhalten.
+Setzt die Spieler-ID basierend auf den erhaltenen Serverinformationen.
+"start":
+
+Wird ausgelöst, wenn das Spiel gestartet werden soll.
+Aktualisiert den Spielstartstatus und passt die Benutzeroberfläche entsprechend an.
+"all_players_ready":
+
+Wird ausgelöst, wenn alle Spieler bereit sind, das Spiel zu starten.
+Setzt den Status, ob das Spiel gestartet werden kann, basierend auf den Serverinformationen.
+
+
