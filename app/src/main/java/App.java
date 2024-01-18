@@ -92,10 +92,11 @@ public class App extends Application {
     private boolean gameStart2 = false;
 
     private Road road;
+
     /**
-     * Startet die Anwendung und initialisiert die verschiedenen Szenen.
+     * Launches the application and initializes the various scenes.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung.
+     * @param primaryStage The main stage of the application.
      */
     @Override
     public void start(Stage primaryStage) {
@@ -110,12 +111,10 @@ public class App extends Application {
     }
 
     /**
-     * Erstellt die Verbindungsszene (Connect Scene) für die Anwendung.
-     * - Die Methode erstellt UI-Elemente wie Label, Textfelder und Buttons für die Verbindungsszene.
-     * - Setzt ein Hintergrundbild und ein Logo für die Verbindungsszene.
-     * - Die Methode definiert Aktionen für den "Verbindung herstellen"-Button.
+     * Creates the connection scene with UI elements such as labels, text fields,
+     * and buttons.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     * @param primaryStage The main stage of the application.
      */
     private void createConnectSzene(Stage primaryStage) {
         serverStatus = new Label();
@@ -158,23 +157,19 @@ public class App extends Application {
         double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
 
-
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
         root.getChildren().add(logoImageView);
         root.getChildren().add(connectBox);
-        
 
         connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
     /**
-     * Erstellt die Spielszene (Game Scene) für die Anwendung.
-     * - Die Methode erstellt UI-Elemente wie Label, Buttons und Slider für die Spielszene.
-     * - Setzt ein Hintergrundbild und ein Logo für die Spielszene.
-     * - Die Methode definiert Aktionen für die Buttons und den "Reconnect"-Button.
+     * Creates the game scene with UI elements such as labels, buttons, and displays
+     * for connected players.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     * @param primaryStage The main stage of the application.
      */
     private void createGameSzene(Stage primaryStage) {
         connectedUsersLabel = new Label();
@@ -184,8 +179,8 @@ public class App extends Application {
         setStartButton();
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
-                if(road == null){
-                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
+                if (road == null) {
+                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
                     gameStart = false;
                     canStart = false;
                     playerReady = false;
@@ -236,13 +231,13 @@ public class App extends Application {
         btnSettings.setPrefHeight(40);
         btnQuit.setPrefHeight(40);
 
-        buttonGameBox = new VBox(10); 
+        buttonGameBox = new VBox(10);
         playersConnectedBox = new VBox(10);
-        buttonGameBox.setAlignment(Pos.CENTER); 
+        buttonGameBox.setAlignment(Pos.CENTER);
         playersConnectedBox.setAlignment(Pos.TOP_LEFT);
         playersConnectedBox.getChildren().add(connectedUsersLabel);
         playersConnectedBox.getChildren().add(offlineModeLabel);
-        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); 
+        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit);
 
         connectionStatusLabel = new Label();
         connectionStatusLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -260,7 +255,7 @@ public class App extends Application {
             establishConnection(primaryStage);
         });
 
-        VBox reconnectBox = new VBox(10); 
+        VBox reconnectBox = new VBox(10);
         reconnectBox.setAlignment(Pos.CENTER);
         reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
 
@@ -282,23 +277,19 @@ public class App extends Application {
         double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
 
-
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
         root.getChildren().add(logoImageView);
         root.getChildren().addAll(playersConnectedBox, buttonGameBox);
-        
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
     /**
-     * Erstellt die Einstellungsszene (Settings Scene) für die Anwendung.
-     * - Die Methode erstellt UI-Elemente wie Label, Slider, Dropdown-Menüs und Buttons für die Einstellungsszene.
-     * - Setzt ein Hintergrundbild und ein Logo für die Einstellungsszene.
-     * - Die Methode definiert Aktionen für die Dropdown-Menüs, den "Fullscreen"-CheckBox und den "Save"-Button.
+     * Creates the settings scene with UI elements such as sliders, buttons, and
+     * dropdown menus.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     * @param primaryStage The main stage of the application.
      */
     private void createSettingsScene(Stage primaryStage) {
 
@@ -324,7 +315,7 @@ public class App extends Application {
         // Camera Height
         Label cameraHeightLabel = new Label("Camera Height");
         cameraHeightLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider cameraHeightSlider = new Slider(500, 5000, 1000); 
+        Slider cameraHeightSlider = new Slider(500, 5000, 1000);
         cameraHeightSlider.setMaxWidth(150);
         cameraHeightSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         cameraHeightSlider.setBlockIncrement(1);
@@ -340,7 +331,7 @@ public class App extends Application {
         // Draw Distance
         Label drawDistanceLabel = new Label("Draw Distance");
         drawDistanceLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider drawDistanceSlider = new Slider(100, 500, 300); 
+        Slider drawDistanceSlider = new Slider(100, 500, 300);
         drawDistanceSlider.setMaxWidth(150);
         drawDistanceSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         drawDistanceSlider.setBlockIncrement(1);
@@ -356,7 +347,7 @@ public class App extends Application {
         // Field of View
         Label fieldOfViewLabel = new Label("Field of View");
         fieldOfViewLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider fieldOfViewSlider = new Slider(80, 140, 100); 
+        Slider fieldOfViewSlider = new Slider(80, 140, 100);
         fieldOfViewSlider.setMaxWidth(150);
         fieldOfViewSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         TextField fieldOfViewOutput = new TextField("100");
@@ -394,13 +385,13 @@ public class App extends Application {
         // Resolution Dropdown-Menu
         ComboBox<String> resolutionDropdown = new ComboBox<>();
         resolutionDropdown.getItems().addAll("Low 480x360", "Medium 640x480", "High 1024x768", "Fine 1280x960");
-        resolutionDropdown.setValue("High 1024x768"); 
+        resolutionDropdown.setValue("High 1024x768");
         resolutionDropdown
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         resolutionDropdown.setMaxHeight(400);
 
         resolutionDropdown.setOnAction(event -> {
-            if (resolutionDropdown.getValue() != "High 1024x768" ) {
+            if (resolutionDropdown.getValue() != "High 1024x768") {
                 double hudScale = 1.0;
                 switch (resolutionDropdown.getValue()) {
                     case "Low 480x360":
@@ -413,7 +404,7 @@ public class App extends Application {
 
                     case "Fine 1280x960":
                         hudScale = 1280 / Road.getWindowWidth();
-                            break;
+                        break;
                 }
                 Road.setHudScale(hudScale);
                 System.out.println("HUD Scale: " + hudScale);
@@ -421,7 +412,7 @@ public class App extends Application {
         });
 
         CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
-        fullscreenCheckBox.setSelected(false); 
+        fullscreenCheckBox.setSelected(false);
         fullscreenCheckBox
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         fullscreenCheckBox.setMaxHeight(400);
@@ -434,7 +425,6 @@ public class App extends Application {
                 double aspectRatio = 4.0 / 3.0;
                 double maxResolutionWidth = Math.min(screenWidth, screenHeight * aspectRatio);
                 double maxResolutionHeight = maxResolutionWidth / aspectRatio;
-
 
                 resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
                 Road.setHudScale(maxResolutionWidth / Road.getWindowWidth());
@@ -525,11 +515,10 @@ public class App extends Application {
 
         logoImageView.setFitWidth(SCREEN_WIDTH);
         logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
-        double logoYOffset = -(SCREEN_HEIGHT / 3); 
+        double logoYOffset = -(SCREEN_HEIGHT / 3);
         logoImageView.setTranslateY(logoYOffset);
-        double logoXOffset = -(SCREEN_WIDTH / 15); 
+        double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
-
 
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
@@ -540,9 +529,10 @@ public class App extends Application {
     }
 
     /**
-     * Stellt eine Verbindung zum Server her und registriert Event-Handler für verschiedene Ereignisse.
+     * Establishes a connection to the server and registers event handlers for
+     * various events.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung.
+     * @param primaryStage The main stage of the application.
      */
     private void establishConnection(Stage primaryStage) {
         try {
@@ -649,17 +639,18 @@ public class App extends Application {
     }
 
     /**
-     * Verarbeitet Ereignisse, wenn Spieler mit dem Server verbunden sind, und aktualisiert die Benutzeroberfläche entsprechend.
+     * Processes events when players are connected to the server and updates the
+     * user interface accordingly.
      *
-     * @param args Die Argumente des Ereignisses, die die Informationen über die verbundenen Spieler enthalten.
-     * @throws JSONException Falls es zu einem Fehler bei der JSON-Verarbeitung kommt.
+     * @param args The event arguments containing information about the connected
+     *             players.
+     * @throws JSONException In case of an error during JSON processing.
      */
     private void onPlayersConnected(Object... args) throws JSONException {
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
             JSONArray usernamesArray = new JSONArray();
             ArrayList<String> keysList = new ArrayList<String>();
-
 
             Iterator<String> keys = jsonObject.keys();
             while (keys.hasNext()) {
@@ -686,7 +677,7 @@ public class App extends Application {
                 Platform.runLater(() -> {
                     connectedUsersLabel.setText(usersStringBuilder.toString());
                     connectedUsersLabel.setVisible(true);
-                    connectedUsersLabel.getParent().requestLayout(); 
+                    connectedUsersLabel.getParent().requestLayout();
                 });
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -695,9 +686,10 @@ public class App extends Application {
     }
 
     /**
-     * Setzt den Host anhand der empfangenen Serverinformationen und aktualisiert den Startbutton entsprechend.
+     * Sets the host based on the received server information and updates the start
+     * button accordingly.
      *
-     * @param args Die Argumente des Ereignisses, die die Hostinformationen enthalten.
+     * @param args The event arguments containing the host information.
      */
     public void createHost(Object... args) {
         hostID = args[0].toString();
@@ -708,18 +700,19 @@ public class App extends Application {
     }
 
     /**
-     * Setzt die Spieler-ID basierend auf den empfangenen Serverinformationen.
+     * Sets the player ID based on the received server information.
      *
-     * @param args Die Argumente des Ereignisses, die die Spieler-ID enthalten.
+     * @param args The event arguments containing the player ID.
      */
     public void getPlayerID(Object... args) {
         clientID = args[0].toString();
     }
 
-     /**
-     * Setzt den Zustand, ob das Spiel gestartet werden kann, basierend auf den empfangenen Serverinformationen.
+    /**
+     * Sets the state of whether the game can be started based on the received
+     * server information.
      *
-     * @param args Die Argumente des Ereignisses, die den Startstatus des Spiels enthalten.
+     * @param args The event arguments containing the start status of the game.
      */
     public void setCanStart(Object... args) {
         canStart = args[0].toString().equals("true");
@@ -727,15 +720,16 @@ public class App extends Application {
     }
 
     /**
-     * Setzt den Zustand des Spiels, wenn es gestartet wird, und initialisiert die Spielszene.
+     * Sets the game state when it is started and initializes the game scene.
      *
-     * @param primaryStage Die Hauptbühne der Anwendung.
-     * @param args         Die Argumente des Ereignisses, die den Startstatus des Spiels enthalten.
+     * @param primaryStage The main stage of the application.
+     * @param args         The event arguments containing the start status of the
+     *                     game.
      */
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
         if (gameStart && !gameStart2) {
-            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
+            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
             road.start(primaryStage);
             gameStart2 = true;
         }
@@ -752,12 +746,15 @@ public class App extends Application {
 
         switchScene(primaryStage, gameScene);
     }
-    
+
     /**
-     * Setzt den Zustand und das Aussehen des Startbuttons basierend auf verschiedenen Bedingungen.
-     * - Wenn nicht verbunden oder Host, wird der Button rot mit der Aufschrift "Start" oder "Not Ready" (je nach Spielerbereitschaft).
-     * - Wenn das Spiel gestartet werden kann oder es nur einen Spieler gibt, wird der Button grün.
-     * - Wenn der Spieler bereit ist, wird der Button grün mit der Aufschrift "Ready".
+     * Sets the state and appearance of the start button based on various
+     * conditions.
+     * - If not connected or the host, the button is red with the label "Start" or
+     * "Not Ready" (depending on player readiness).
+     * - If the game can be started or there is only one player, the button is
+     * green.
+     * - If the player is ready, the button is green with the label "Ready".
      */
     private void setStartButton() {
         if (!isConnected || isHost) {
@@ -766,7 +763,7 @@ public class App extends Application {
             btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
                     "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
             System.out.println(clientdIDs.size());
-            if(canStart || clientdIDs.size() <= 1){
+            if (canStart || clientdIDs.size() <= 1) {
                 btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
                         "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
             }
@@ -782,14 +779,16 @@ public class App extends Application {
     }
 
     /**
-     * Wechselt die Szene auf der Plattform-JavaFX-Laufzeit.
-     * - Die Methode wird auf dem JavaFX Application Thread ausgeführt, um sicherzustellen,
-     *   dass die Änderungen an der Szene auf dem richtigen Thread vorgenommen werden.
-     * - Die Methode aktualisiert die Szene des übergebenen Stages mit der neuen Szene und zeigt den Stage an.
-     * - Gibt "Szene gewechselt" auf der Konsole aus, um den erfolgreichen Szenenwechsel anzuzeigen.
+     * Switches the scene on the JavaFX platform runtime.
+     * - This method is executed on the JavaFX Application Thread to ensure
+     * that changes to the scene are made on the correct thread.
+     * - The method updates the scene of the given stage with the new scene and
+     * shows the stage.
+     * - Prints "Scene switched" to the console to indicate a successful scene
+     * change.
      *
-     * @param stage Der Stage, dessen Szene geändert werden soll.
-     * @param scene Die neue Szene, die auf der Stage angezeigt werden soll.
+     * @param stage The stage whose scene is to be changed.
+     * @param scene The new scene to be displayed on the stage.
      */
     public static void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
@@ -799,7 +798,7 @@ public class App extends Application {
         System.out.println("Szene gewechselt");
     }
 
-    public static Scene getGameScene(){
+    public static Scene getGameScene() {
         return gameScene;
     }
 
