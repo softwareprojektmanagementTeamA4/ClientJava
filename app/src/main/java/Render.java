@@ -19,6 +19,16 @@ public class Render {
     // canvas rendering helpers
     //=========================================================================
 
+    /**
+     * For rendering the background of the game canvas
+     * @param gc
+     * @param background
+     * @param width
+     * @param height
+     * @param background2
+     * @param rotation
+     * @param offset
+     */
     public void background(GraphicsContext gc, Image background, int width, int height,
                                   Background background2, double rotation, double offset) 
                                   {
@@ -45,6 +55,20 @@ public class Render {
             gc.drawImage(background, background2.getX(), sourceY, imageW - sourceW, sourceH, destW - 1, destY, width - destW, destH);
     }
 
+    /**
+     * Rendering the segments of the road
+     * @param ctx
+     * @param width
+     * @param lanes
+     * @param x1
+     * @param y1
+     * @param w1
+     * @param x2
+     * @param y2
+     * @param w2
+     * @param fog
+     * @param color
+     */
     public void segment(
             GraphicsContext ctx,
             int width,
@@ -96,14 +120,39 @@ public class Render {
        fog(ctx, 0, y1, width, y2 - y1, fog);
     }
 
+    /**
+     * rumble strip calculation
+     * @param projectedRoadWidth
+     * @param lanes
+     * @return
+     */
     private double rumbleWidth(double projectedRoadWidth, double lanes) {
         return projectedRoadWidth / Math.max(6, 2 * lanes);
     }
 
+    /**
+     * lane marker calculation
+     * @param projectedRoadWidth
+     * @param lanes
+     * @return
+     */
     private double laneMarkerWidth(double projectedRoadWidth, double lanes) {
         return projectedRoadWidth / Math.max(32, 8 * lanes);
     }
 
+    /**
+     * Rendering the polygons based on the calculated points
+     * @param ctx
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param x3
+     * @param y3
+     * @param x4
+     * @param y4
+     * @param color
+     */
     public void polygon(GraphicsContext ctx, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, Color color) {
         ctx.setFill(color);
         ctx.beginPath();
@@ -115,6 +164,15 @@ public class Render {
         ctx.fill();
     }
 
+    /**
+     * fog generation
+     * @param ctx
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @param fog
+     */
     private void fog(GraphicsContext ctx, double x, double y, double width, double height, double fog) {
 
         if (fog < 1) {
@@ -125,6 +183,22 @@ public class Render {
         }
     }
 
+    /**
+     * Rendering the sprites
+     * @param ctx
+     * @param width
+     * @param height
+     * @param resolution
+     * @param roadWidth
+     * @param sprites
+     * @param sprite
+     * @param scale
+     * @param destX
+     * @param destY
+     * @param offsetX
+     * @param offsetY
+     * @param clipY
+     */
     public void sprite(
             GraphicsContext ctx,
             double width,
@@ -162,6 +236,23 @@ public class Render {
         }
     }
 
+    /**
+     * Rendering the player based on the key inputs
+     * @param ctx
+     * @param sprites
+     * @param width
+     * @param height
+     * @param resolution
+     * @param roadWidth
+     * @param speedPercent
+     * @param scale
+     * @param destX
+     * @param destY
+     * @param steer
+     * @param updown
+     * @param nitro
+     * @param playerNum
+     */
     public void player(
         GraphicsContext ctx,
         Image sprites,

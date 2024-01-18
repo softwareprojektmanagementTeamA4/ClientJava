@@ -129,6 +129,10 @@ public class Road extends Application {
     private Socket socket;
     AnimationTimer gameLoop;
 
+
+    //=========================================================================
+    // MAIN START METHOD
+    //=========================================================================
     @Override
     public void start(Stage primaryStage) {
         getSettingsFromApp(primaryStage);
@@ -147,6 +151,9 @@ public class Road extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+        /**
+         * Set all the key events, for moving the car
+         */
         scene.setOnKeyPressed(event -> {
             if (!gameFinished) {
                 switch (event.getCode()) {
@@ -171,6 +178,7 @@ public class Road extends Application {
                         break;
                 }
             } else{
+                // If the game is finished, the player can press Q to go back to the main menu
                 switch (event.getCode()) {
                     case Q:
                         App.switchScene(primaryStage, App.getGameScene());
@@ -180,6 +188,9 @@ public class Road extends Application {
             }
         });
 
+        /**
+         * Set all the key events, for moving the car
+         */
         scene.setOnKeyReleased(event -> {
             if (!gameFinished) {
                 switch (event.getCode()) {
@@ -238,7 +249,9 @@ public class Road extends Application {
          * SocketIO Eventhandler for receiving data from the server
          */
 
-        // Receive the player Car data from the server
+        /**
+         * Receive the client id from the server
+         */
         socket.on("receive_data", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -269,7 +282,9 @@ public class Road extends Application {
             }
         });
 
-        // Receive the player order from server
+        /**
+         * Recieve the player order from the server
+         */
         socket.on("receive_order", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -292,7 +307,9 @@ public class Road extends Application {
             }
         });
 
-        // Receive npc cardata
+        /**
+         * Recieve NPC car data from the server
+         */
         socket.on("receive_npc_car_data", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -319,7 +336,10 @@ public class Road extends Application {
             }
         });
 
-        // Receive the player start positions
+        /**
+         * Receive the player start positions from the server
+         * The player start positions are used to determine the player order
+         */
         socket.on("receive_start_position", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -829,6 +849,7 @@ public class Road extends Application {
         }
     }
 
+    //Straight road generation
     public void addStraight(Integer num) {
         if (num == null) {
             num = RoadDefinition.Length.MEDIUM.getValue();
@@ -836,6 +857,7 @@ public class Road extends Application {
         addRoad(num, num, num, 0, 0);
     }
 
+    //Curve road generation
     public void addCurve(Integer num, Integer curve, Integer height) {
         if (num == null) {
             num = RoadDefinition.Length.MEDIUM.getValue();
@@ -849,6 +871,7 @@ public class Road extends Application {
         addRoad(num, num, num, curve, height);
     }
 
+    //Hill road generation
     public void addHill(Integer num, Integer height) {
         if (num == null) {
             num = RoadDefinition.Length.MEDIUM.getValue();
@@ -859,6 +882,7 @@ public class Road extends Application {
         addRoad(num, num, num, 0, height);
     }
 
+    //S-Curve road generation
     public void addSCurves() {
         addRoad(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Length.MEDIUM.getValue(),
                 RoadDefinition.Length.MEDIUM.getValue(), -RoadDefinition.Curve.EASY.getValue(),
@@ -881,6 +905,7 @@ public class Road extends Application {
                 -RoadDefinition.Hill.MEDIUM.getValue());
     }
 
+    //Bumps road generation
     public void addBumps() {
         addRoad(10, 10, 10, 0, 5);
         addRoad(10, 10, 10, 0, -2);
@@ -892,6 +917,7 @@ public class Road extends Application {
         addRoad(10, 10, 10, 0, -2);
     }
 
+    //Downhill road generation
     private void addDownhillToEnd(Integer num) {
         if (num == null) {
             num = 200;
@@ -900,6 +926,7 @@ public class Road extends Application {
 
     }
 
+    //Low rolling hills road generation
     private void addLowRollingHills(Integer num, Integer height) {
         if (num == null) {
             num = RoadDefinition.Length.SHORT.getValue();
@@ -915,6 +942,9 @@ public class Road extends Application {
         addRoad(num, num, num, 0, 0);
     }
 
+    /**
+     * Resets the road to the default road
+     */
     private void resetRoad() {
         segments.clear();
         addStraight(RoadDefinition.Length.SHORT.getValue());
@@ -942,6 +972,9 @@ public class Road extends Application {
         TRACK_LENGTH = segments.size() * SEGMENT_LENGTH;
     }
 
+    /**
+     * Resets the sprites to the default sprites
+     */
     public void resetSprites() {
         List<Integer> intList = new ArrayList<>(List.of(1, -1));
         addSprite(50, SPRITES.BILLBOARD07, -1);
@@ -958,13 +991,6 @@ public class Road extends Application {
         addSprite(240, SPRITES.BILLBOARD06, 1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD07, -1.2);
         addSprite(segments.size() - 25, SPRITES.BILLBOARD06, 1.2);
-
-        /*
-         * for (int n = 10; n < 200; n += 4 + Math.floor(n / 100)) {
-         * addSprite(n, SPRITES.PALM_TREE, 0.5 + Math.random() * 0.5);
-         * addSprite(n, SPRITES.PALM_TREE, 1 + Math.random() * 2);
-         * }
-         */
 
         for (int n = 250; n < 1000; n += 50) {
             double offset = Math.floorDiv(n, 50);
@@ -1001,6 +1027,10 @@ public class Road extends Application {
 
     }
 
+    /**
+     * Resets the player start positions
+     * @return the player start positions
+     */
     public JSONArray reset_player_start_positions() {
         player_start_positions = new JSONArray();
         Double offset = -0.6;
@@ -1025,7 +1055,9 @@ public class Road extends Application {
         return player_start_positions;
     }
 
-
+    /**
+     * Resets the cars to the default cars
+     */
     public void resetCars() {
         cars.clear();
         for (int n = 0; n < totalCars; n++) {
@@ -1068,6 +1100,10 @@ public class Road extends Application {
     
         }
 
+    /**
+     * The game loop
+     * @param ctx the graphics context
+     */
     public void frame(GraphicsContext ctx) {
         long now = System.currentTimeMillis();
         double targetFrameTime = 1.0 / FPS;
@@ -1107,6 +1143,10 @@ public class Road extends Application {
         }
     }
 
+    /**
+     * endScreen gets called when the game is finished
+     * @param ctx the graphics context
+     */
     public void endScreen(GraphicsContext ctx) {;
         if (currentLap > maxLap) {
             String username = clientIDs.get(clientID);
@@ -1142,6 +1182,10 @@ public class Road extends Application {
         }
     }
 
+    /**
+     * updateHUD updates the HUD
+     * @param ctx the graphics context
+     */
     public void updateHUD(GraphicsContext ctx) {
         ctx.setFill(Color.rgb(255, 0, 0, 0.3));
         ctx.fillRect(0, 0, WIDTH, (HEIGHT / 8));

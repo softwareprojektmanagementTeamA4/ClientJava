@@ -93,6 +93,11 @@ public class App extends Application {
 
     private Road road;
 
+    /**
+     * Launches the application and initializes the various scenes.
+     *
+     * @param primaryStage The main stage of the application.
+     */
     @Override
     public void start(Stage primaryStage) {
 
@@ -105,6 +110,12 @@ public class App extends Application {
 
     }
 
+    /**
+     * Creates the connection scene with UI elements such as labels, text fields,
+     * and buttons.
+     *
+     * @param primaryStage The main stage of the application.
+     */
     private void createConnectSzene(Stage primaryStage) {
         serverStatus = new Label();
         serverStatus.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -146,16 +157,20 @@ public class App extends Application {
         double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
 
-
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
         root.getChildren().add(logoImageView);
         root.getChildren().add(connectBox);
-        
 
         connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Creates the game scene with UI elements such as labels, buttons, and displays
+     * for connected players.
+     *
+     * @param primaryStage The main stage of the application.
+     */
     private void createGameSzene(Stage primaryStage) {
         connectedUsersLabel = new Label();
         connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -164,8 +179,8 @@ public class App extends Application {
         setStartButton();
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
-                if(road == null){
-                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
+                if (road == null) {
+                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
                     gameStart = false;
                     canStart = false;
                     playerReady = false;
@@ -216,13 +231,13 @@ public class App extends Application {
         btnSettings.setPrefHeight(40);
         btnQuit.setPrefHeight(40);
 
-        buttonGameBox = new VBox(10); 
+        buttonGameBox = new VBox(10);
         playersConnectedBox = new VBox(10);
-        buttonGameBox.setAlignment(Pos.CENTER); 
+        buttonGameBox.setAlignment(Pos.CENTER);
         playersConnectedBox.setAlignment(Pos.TOP_LEFT);
         playersConnectedBox.getChildren().add(connectedUsersLabel);
         playersConnectedBox.getChildren().add(offlineModeLabel);
-        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit); 
+        buttonGameBox.getChildren().addAll(btnStart, btnSettings, btnQuit);
 
         connectionStatusLabel = new Label();
         connectionStatusLabel.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -240,7 +255,7 @@ public class App extends Application {
             establishConnection(primaryStage);
         });
 
-        VBox reconnectBox = new VBox(10); 
+        VBox reconnectBox = new VBox(10);
         reconnectBox.setAlignment(Pos.CENTER);
         reconnectBox.getChildren().addAll(reconnectButton, connectionStatusLabel);
 
@@ -262,16 +277,20 @@ public class App extends Application {
         double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
 
-
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
         root.getChildren().add(logoImageView);
         root.getChildren().addAll(playersConnectedBox, buttonGameBox);
-        
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Creates the settings scene with UI elements such as sliders, buttons, and
+     * dropdown menus.
+     *
+     * @param primaryStage The main stage of the application.
+     */
     private void createSettingsScene(Stage primaryStage) {
 
         Label saveConfirmationLabel = new Label("");
@@ -296,7 +315,7 @@ public class App extends Application {
         // Camera Height
         Label cameraHeightLabel = new Label("Camera Height");
         cameraHeightLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider cameraHeightSlider = new Slider(500, 5000, 1000); 
+        Slider cameraHeightSlider = new Slider(500, 5000, 1000);
         cameraHeightSlider.setMaxWidth(150);
         cameraHeightSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         cameraHeightSlider.setBlockIncrement(1);
@@ -312,7 +331,7 @@ public class App extends Application {
         // Draw Distance
         Label drawDistanceLabel = new Label("Draw Distance");
         drawDistanceLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider drawDistanceSlider = new Slider(100, 500, 300); 
+        Slider drawDistanceSlider = new Slider(100, 500, 300);
         drawDistanceSlider.setMaxWidth(150);
         drawDistanceSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         drawDistanceSlider.setBlockIncrement(1);
@@ -328,7 +347,7 @@ public class App extends Application {
         // Field of View
         Label fieldOfViewLabel = new Label("Field of View");
         fieldOfViewLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: grey;");
-        Slider fieldOfViewSlider = new Slider(80, 140, 100); 
+        Slider fieldOfViewSlider = new Slider(80, 140, 100);
         fieldOfViewSlider.setMaxWidth(150);
         fieldOfViewSlider.setStyle("-fx-base: #000000; -fx-scale-y: 2.0; -fx-scale-x: 2.0;");
         TextField fieldOfViewOutput = new TextField("100");
@@ -366,13 +385,13 @@ public class App extends Application {
         // Resolution Dropdown-Menu
         ComboBox<String> resolutionDropdown = new ComboBox<>();
         resolutionDropdown.getItems().addAll("Low 480x360", "Medium 640x480", "High 1024x768", "Fine 1280x960");
-        resolutionDropdown.setValue("High 1024x768"); 
+        resolutionDropdown.setValue("High 1024x768");
         resolutionDropdown
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         resolutionDropdown.setMaxHeight(400);
 
         resolutionDropdown.setOnAction(event -> {
-            if (resolutionDropdown.getValue() != "High 1024x768" ) {
+            if (resolutionDropdown.getValue() != "High 1024x768") {
                 double hudScale = 1.0;
                 switch (resolutionDropdown.getValue()) {
                     case "Low 480x360":
@@ -385,7 +404,7 @@ public class App extends Application {
 
                     case "Fine 1280x960":
                         hudScale = 1280 / Road.getWindowWidth();
-                            break;
+                        break;
                 }
                 Road.setHudScale(hudScale);
                 System.out.println("HUD Scale: " + hudScale);
@@ -393,7 +412,7 @@ public class App extends Application {
         });
 
         CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
-        fullscreenCheckBox.setSelected(false); 
+        fullscreenCheckBox.setSelected(false);
         fullscreenCheckBox
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         fullscreenCheckBox.setMaxHeight(400);
@@ -406,7 +425,6 @@ public class App extends Application {
                 double aspectRatio = 4.0 / 3.0;
                 double maxResolutionWidth = Math.min(screenWidth, screenHeight * aspectRatio);
                 double maxResolutionHeight = maxResolutionWidth / aspectRatio;
-
 
                 resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
                 Road.setHudScale(maxResolutionWidth / Road.getWindowWidth());
@@ -497,11 +515,10 @@ public class App extends Application {
 
         logoImageView.setFitWidth(SCREEN_WIDTH);
         logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
-        double logoYOffset = -(SCREEN_HEIGHT / 3); 
+        double logoYOffset = -(SCREEN_HEIGHT / 3);
         logoImageView.setTranslateY(logoYOffset);
-        double logoXOffset = -(SCREEN_WIDTH / 15); 
+        double logoXOffset = -(SCREEN_WIDTH / 15);
         logoImageView.setTranslateX(-logoXOffset);
-
 
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
@@ -511,6 +528,12 @@ public class App extends Application {
         settingsScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Establishes a connection to the server and registers event handlers for
+     * various events.
+     *
+     * @param primaryStage The main stage of the application.
+     */
     private void establishConnection(Stage primaryStage) {
         try {
             IO.Options options = IO.Options.builder()
@@ -615,12 +638,19 @@ public class App extends Application {
 
     }
 
+    /**
+     * Processes events when players are connected to the server and updates the
+     * user interface accordingly.
+     *
+     * @param args The event arguments containing information about the connected
+     *             players.
+     * @throws JSONException In case of an error during JSON processing.
+     */
     private void onPlayersConnected(Object... args) throws JSONException {
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
             JSONArray usernamesArray = new JSONArray();
             ArrayList<String> keysList = new ArrayList<String>();
-
 
             Iterator<String> keys = jsonObject.keys();
             while (keys.hasNext()) {
@@ -647,7 +677,7 @@ public class App extends Application {
                 Platform.runLater(() -> {
                     connectedUsersLabel.setText(usersStringBuilder.toString());
                     connectedUsersLabel.setVisible(true);
-                    connectedUsersLabel.getParent().requestLayout(); 
+                    connectedUsersLabel.getParent().requestLayout();
                 });
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -655,6 +685,12 @@ public class App extends Application {
         }
     }
 
+    /**
+     * Sets the host based on the received server information and updates the start
+     * button accordingly.
+     *
+     * @param args The event arguments containing the host information.
+     */
     public void createHost(Object... args) {
         hostID = args[0].toString();
         if (clientID.equals(hostID)) {
@@ -663,19 +699,37 @@ public class App extends Application {
         setStartButton();
     }
 
+    /**
+     * Sets the player ID based on the received server information.
+     *
+     * @param args The event arguments containing the player ID.
+     */
     public void getPlayerID(Object... args) {
         clientID = args[0].toString();
     }
 
+    /**
+     * Sets the state of whether the game can be started based on the received
+     * server information.
+     *
+     * @param args The event arguments containing the start status of the game.
+     */
     public void setCanStart(Object... args) {
         canStart = args[0].toString().equals("true");
         setStartButton();
     }
 
+    /**
+     * Sets the game state when it is started and initializes the game scene.
+     *
+     * @param primaryStage The main stage of the application.
+     * @param args         The event arguments containing the start status of the
+     *                     game.
+     */
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
         if (gameStart && !gameStart2) {
-            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
+            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
             road.start(primaryStage);
             gameStart2 = true;
         }
@@ -693,6 +747,15 @@ public class App extends Application {
         switchScene(primaryStage, gameScene);
     }
 
+    /**
+     * Sets the state and appearance of the start button based on various
+     * conditions.
+     * - If not connected or the host, the button is red with the label "Start" or
+     * "Not Ready" (depending on player readiness).
+     * - If the game can be started or there is only one player, the button is
+     * green.
+     * - If the player is ready, the button is green with the label "Ready".
+     */
     private void setStartButton() {
         if (!isConnected || isHost) {
             System.out.println("Host");
@@ -700,7 +763,7 @@ public class App extends Application {
             btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
                     "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
             System.out.println(clientdIDs.size());
-            if(canStart || clientdIDs.size() <= 1){
+            if (canStart || clientdIDs.size() <= 1) {
                 btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
                         "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
             }
@@ -715,6 +778,18 @@ public class App extends Application {
         }
     }
 
+    /**
+     * Switches the scene on the JavaFX platform runtime.
+     * - This method is executed on the JavaFX Application Thread to ensure
+     * that changes to the scene are made on the correct thread.
+     * - The method updates the scene of the given stage with the new scene and
+     * shows the stage.
+     * - Prints "Scene switched" to the console to indicate a successful scene
+     * change.
+     *
+     * @param stage The stage whose scene is to be changed.
+     * @param scene The new scene to be displayed on the stage.
+     */
     public static void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
             stage.setScene(scene);
@@ -723,7 +798,7 @@ public class App extends Application {
         System.out.println("Szene gewechselt");
     }
 
-    public static Scene getGameScene(){
+    public static Scene getGameScene() {
         return gameScene;
     }
 
