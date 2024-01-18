@@ -9,7 +9,7 @@ public class Render {
     Util util = new Util();
     private static Sprites SPRITES = new Sprites();
 
-    Color roadColor = Colors.getRoadColorDark();
+    Color roadColor = Colors.getRoadColorLight();
 
     public static final Background HILLS = new Background(5, 5, 1280, 480);
     public static final Background SKY = new Background(5, 495, 1280, 480);
@@ -78,19 +78,24 @@ public class Render {
         polygon(ctx, x1 + w1 + r1, y1, x1 + w1, y1, x2 + w2, y2, x2 + w2 + r2, y2, color);
         polygon(ctx, x1 - w1, y1, x1 + w1, y1, x2 + w2, y2, x2 - w2, y2, roadColor);
 
-
-        if (color.equals(Color.WHITE)) {
+        
+        if (color == Colors.RUMBLE_DARK) {
             lanew1 = w1 * 2 / lanes;
             lanew2 = w2 * 2 / lanes;
-            lanex1 = x1 - w1 + lanew1;
-            lanex2 = x2 - w2 + lanew2;
-            for (lane = 1; lane < lanes; lane++) {
-                polygon(ctx, lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, color);
-                lanex1 += lanew1;
-                lanex2 += lanew2; 
-            }
+            lanex1 = x1 - w1;
+            lanex2 = x2 - w2;
             
+            
+            for (lane = 1; lane < lanes; lane++) {
+                lanex1 += lanew1;
+                lanex2 += lanew2;
+                
+                System.out.println("lanex1: " + lanex1 + ", lanex2: " + lanex2);
+                
+                polygon(ctx, lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, Colors.LANE_LIGHT);
+            }
         }
+        
        fog(ctx, 0, y1, width, y2 - y1, fog);
     }
 
@@ -114,10 +119,11 @@ public class Render {
     }
 
     private void fog(GraphicsContext ctx, double x, double y, double width, double height, double fog) {
+
         if (fog < 1) {
             ctx.setGlobalAlpha(1 - fog);
-            ctx.setFill(Colors.getFogColor()); // Ändern Sie dies entsprechend Ihrer Farbdefinition
-            ctx.fillRect(x, y, width, height);
+            ctx.setFill(Colors.getFogColor()); 
+            ctx.fillRect(x, y+height, width, -height + 1);
             ctx.setGlobalAlpha(1);
         }
     }

@@ -35,7 +35,7 @@ public class Colors {
     }
 
     public static Color getRoadColorDark() {
-        return ROAD_LIGHT;
+        return ROAD_DARK;
     }
 
     public static Color getGrassColorLight() {

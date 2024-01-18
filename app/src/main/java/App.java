@@ -1,4 +1,3 @@
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -19,6 +18,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -59,7 +60,7 @@ public class App extends Application {
     private Button btnSettings;
     private Button btnQuit;
     private Button btnSave;
-    private Scene gameScene;
+    private static Scene gameScene;
     private Scene connectScene;
     private Scene settingsScene;
     private VBox connectBox;
@@ -79,11 +80,18 @@ public class App extends Application {
     private static String selectedLanes = "1 Lane";
     private static String selectedResolution = "High 1024x768";
     private static boolean isFullscreen = false;
+    private boolean first_Build = false;
 
     private String clientID;
     private String hostID;
     private Map<String, String> clientdIDs = new HashMap<String, String>();
     private boolean isHost = false;
+    private boolean playerReady = false;
+    private boolean gameStart = false;
+    private boolean canStart = false;
+    private boolean gameStart2 = false;
+
+    private Road road;
 
     @Override
     public void start(Stage primaryStage) {
@@ -122,8 +130,17 @@ public class App extends Application {
         connectBox.getChildren().add(connectbtn);
         connectBox.getChildren().add(serverStatus);
 
-        connectScene = new Scene(connectBox, SCREEN_WIDTH, SCREEN_HEIGHT);
-        connectScene.getRoot().setStyle("-fx-background-color: blue;");
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
+        StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
+        root.getChildren().add(connectBox);
+
+        connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     }
 
@@ -132,14 +149,33 @@ public class App extends Application {
         connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
 
         btnStart = new Button();
-        btnStart.setText("Start");
-        btnStart.setStyle(
-                "-fx-background-color: grey; -fx-border-color: black; -fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px; ");
-
+        setStartButton();
         btnStart.setOnAction(event -> {
-            socket.emit("game_start");
-            Road road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket, 1);
-            road.start(primaryStage);
+            if (canStart || clientdIDs.size() <= 1) {
+                if(road == null){
+                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                } else {
+                    road.start(primaryStage);
+                    road.setOfflineMode(!isConnected);
+                    road.setClientID(clientID);
+                    road.setClientIDs(clientdIDs);
+                    road.setHost(isHost);
+                    road.setUsername(username);
+                    road.setSocket(socket);
+                }
+                road.start(primaryStage);
+                if(isConnected){
+                    socket.emit("game_start");
+                }
+            } else if (!playerReady && !isHost) {
+                playerReady = true;
+                socket.emit("player_ready", playerReady);
+            } else if (playerReady && !isHost) {
+                playerReady = false;
+                socket.emit("player_ready", playerReady);
+
+            }
+            setStartButton();
         });
 
         btnSettings = new Button();
@@ -197,11 +233,17 @@ public class App extends Application {
 
         buttonGameBox.getChildren().add(reconnectBox);
 
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
         StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
         root.getChildren().addAll(playersConnectedBox, buttonGameBox);
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gameScene.getRoot().setStyle("-fx-background-color: blue;");
     }
 
     private void createSettingsScene(Stage primaryStage) {
@@ -303,6 +345,27 @@ public class App extends Application {
                 .setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         resolutionDropdown.setMaxHeight(400);
 
+        resolutionDropdown.setOnAction(event -> {
+            if (resolutionDropdown.getValue() != "High 1024x768" ) {
+                double hudScale = 1.0;
+                switch (resolutionDropdown.getValue()) {
+                    case "Low 480x360":
+                        hudScale = 480 / Road.getWindowWidth();
+                        break;
+
+                    case "Medium 640x480":
+                        hudScale = 640 / Road.getWindowWidth();
+                        break;
+
+                    case "Fine 1280x960":
+                        hudScale = 1280 / Road.getWindowWidth();
+                            break;
+                }
+                Road.setHudScale(hudScale);
+                System.out.println("HUD Scale: " + hudScale);
+            }
+        });
+
         CheckBox fullscreenCheckBox = new CheckBox("Fullscreen");
         fullscreenCheckBox.setSelected(false); // Standardwert setzen
         fullscreenCheckBox
@@ -321,6 +384,7 @@ public class App extends Application {
 
                 // Set the resolution to the maximum width and height
                 resolutionDropdown.setValue("Custom " + (int) maxResolutionWidth + "x" + (int) maxResolutionHeight);
+                Road.setHudScale(maxResolutionWidth / Road.getWindowWidth());
                 isFullscreen = true;
             } else {
                 isFullscreen = false;
@@ -397,11 +461,18 @@ public class App extends Application {
 
         settingsLayout.getChildren().addAll(topRightBox, lablesandSlider, saveConfirmationLayout);
 
+        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setFitWidth(SCREEN_WIDTH);
+        backgroundImageView.setFitHeight(SCREEN_HEIGHT);
+
         StackPane root = new StackPane();
+        root.getChildren().add(backgroundImageView);
         root.getChildren().add(settingsLayout);
+        
 
         settingsScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-        settingsScene.getRoot().setStyle("-fx-background-color: blue;");
     }
 
     private void establishConnection(Stage primaryStage) {
@@ -410,7 +481,7 @@ public class App extends Application {
                     .setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username)))
                     .build();
 
-            socket = IO.socket("http://35.246.239.15:3000/", options);
+            socket = IO.socket("http://35.246.239.15:300/", options);
 
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
@@ -466,17 +537,31 @@ public class App extends Application {
             });
 
             socket.on("getHostID", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Platform.runLater(() -> createHost(args));
-            }
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> createHost(args));
+                }
             });
 
             socket.on("getPlayerID", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Platform.runLater(() -> getPlayerID(args));
-            }
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> getPlayerID(args));
+                }
+            });
+
+            socket.on("start", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> setGameStart(primaryStage, args));
+                }
+            });
+
+            socket.on("all_players_ready", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Platform.runLater(() -> setCanStart(args));
+                }
             });
 
             socket.connect();
@@ -494,11 +579,9 @@ public class App extends Application {
             });
         }
 
-
     }
 
     private void onPlayersConnected(Object... args) throws JSONException {
-        
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
             JSONArray usernamesArray = new JSONArray();
@@ -511,19 +594,20 @@ public class App extends Application {
                 Object value = jsonObject.get(key);
                 usernamesArray.put(value);
                 keysList.add(key);
-                clientdIDs.put(key,(String)value);
+                clientdIDs.put(key, (String) value);
             }
+            setStartButton();
 
             // Map<String, String> abc = (Map) ;
-              
+
             try {
                 StringBuilder usersStringBuilder = new StringBuilder();
                 for (int i = 0; i < usernamesArray.length(); i++) {
                     String username = usernamesArray.getString(i);
                     String key = keysList.get(i);
-                    if(key.equals(hostID)){
+                    if (key.equals(hostID)) {
                         usersStringBuilder.append(username).append(" Online").append(" Host").append("\n");
-                    } else{
+                    } else {
                         usersStringBuilder.append(username).append(" Online").append("\n");
                     }
                 }
@@ -539,15 +623,30 @@ public class App extends Application {
         }
     }
 
-    public void createHost(Object... args){
-                hostID = args[0].toString();
-                if(clientID.equals(hostID)){
-                    isHost = true;
-                }
+    public void createHost(Object... args) {
+        hostID = args[0].toString();
+        if (clientID.equals(hostID)) {
+            isHost = true;
+        }
+        setStartButton();
     }
 
-    public void getPlayerID(Object... args){
+    public void getPlayerID(Object... args) {
         clientID = args[0].toString();
+    }
+
+    public void setCanStart(Object... args) {
+        canStart = args[0].toString().equals("true");
+        setStartButton();
+    }
+
+    public void setGameStart(Stage primaryStage, Object... args) {
+        gameStart = true;
+        if (gameStart && !gameStart2) {
+            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+            road.start(primaryStage);
+            gameStart2 = true;
+        }
     }
 
     private void setOfflineMode(Stage primaryStage) {
@@ -562,12 +661,38 @@ public class App extends Application {
         switchScene(primaryStage, gameScene);
     }
 
-    private void switchScene(Stage stage, Scene scene) {
+    private void setStartButton() {
+        if (!isConnected || isHost) {
+            System.out.println("Host");
+            btnStart.setText("Start");
+            btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+            System.out.println(clientdIDs.size());
+            if(canStart || clientdIDs.size() <= 1){
+                btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
+                        "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+            }
+        } else if (!playerReady) {
+            btnStart.setText("Not Ready");
+            btnStart.setStyle("-fx-background-color: red; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+        } else {
+            btnStart.setText("Ready");
+            btnStart.setStyle("-fx-background-color: green; -fx-border-color: black; -fx-text-fill: black; " +
+                    "-fx-font-weight: bold; -fx-font-size: 14px; -fx-border-width: 3px;");
+        }
+    }
+
+    public static void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
             stage.setScene(scene);
             stage.show();
         });
         System.out.println("Szene gewechselt");
+    }
+
+    public static Scene getGameScene(){
+        return gameScene;
     }
 
     public static int getRoadWidthSliderValue() {
