@@ -74,7 +74,7 @@ public class Road extends Application {
     private double hillOffset = 0;                       // current hill scroll offset
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 100;   
-    private int currentLapTime = 0;
+    private double currentLapTime = 0;
     private double lastLapTime = 0;
     private int currentLap = 0;
     private int maxLap = 3;
@@ -563,12 +563,9 @@ public class Road extends Application {
                 lastLapTime = currentLapTime;
                 currentLapTime = 0;
                 currentLap += 1;
-                System.out.println("CurrentLap: " + currentLap);
             } else {
                 // currentLapTime += globalDeltaTime;
-                currentLapTime += deltaTime;
-                System.out.println(currentLapTime);
-                System.out.println(deltaTime);
+                currentLapTime += delta_time;
             }
         }
     }
@@ -1299,8 +1296,7 @@ public class Road extends Application {
         this.isHost = isHost;
         this.username = username;
         this.socket = socket;
-        //this.playerNum = playerNum;
-        //System.out.println(isOfflineMode + " " + clientID + " " + clientIDs + " " + isHost + " " + username);
+
         socketIOEventHandler();
     }
 

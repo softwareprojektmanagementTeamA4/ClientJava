@@ -481,7 +481,7 @@ public class App extends Application {
                     .setExtraHeaders(Collections.singletonMap("username", Collections.singletonList(username)))
                     .build();
 
-            socket = IO.socket("http://35.246.239.15:300/", options);
+            socket = IO.socket("http://35.246.239.15:3000/", options);
 
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
