@@ -153,7 +153,7 @@ public class App extends Application {
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
                 if(road == null){
-                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
                 } else {
                     road.start(primaryStage);
                     road.setOfflineMode(!isConnected);
@@ -643,7 +643,7 @@ public class App extends Application {
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
         if (gameStart && !gameStart2) {
-            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+            road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
             road.start(primaryStage);
             gameStart2 = true;
         }

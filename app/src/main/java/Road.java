@@ -46,7 +46,7 @@ import java.util.*;
 public class Road extends Application {
     private long serialVersionUID = 1L;
     private int FPS = 55;
-    private int WIDTH = 1024;
+    private static int WIDTH = 1024;
     private int HEIGHT = 768;
     private int LANES = 3;
     private int ROAD_WIDTH = 2000;
@@ -56,7 +56,7 @@ public class Road extends Application {
     private double DRAW_DISTANCE = 300;
     private int FIELD_OF_VIEW = 100;
     private int FOG_DENSITY = 5;
-    private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / (FPS + 5)) ;
+    private double MAX_SPEED = SEGMENT_LENGTH / (1.0 / (FPS +5)) ;
     private double ACCEL = MAX_SPEED / 5;
     private double BREAKING = -MAX_SPEED;
     private double DECEL = -MAX_SPEED / 5;
@@ -75,11 +75,10 @@ public class Road extends Application {
     private double treeOffset = 0;                       // current tree scroll offset
     private int totalCars = 100;   
     private int currentLapTime = 0;
-    private int lastLapTime = 0;
+    private double lastLapTime = 0;
     private int currentLap = 0;
     private int maxLap = 3;
     private int place;
-    private Socket socket;
     private int playerNum = 1;
 
     private double currentRoadWidth = 0;
@@ -160,8 +159,9 @@ public class Road extends Application {
         GraphicsContext ctx = canvas.getGraphicsContext2D();
 
         root.getChildren().addAll(canvas);
-
+        
         Scene scene = new Scene(root, WIDTH, HEIGHT);
+        
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -231,8 +231,7 @@ public class Road extends Application {
             public void handle(long now) {
 
                 frame(ctx);
-                endScreen(ctx);
-                updateHUD(ctx);
+
 
                 System.out.println("Speed"+ speed);
                 System.out.println("Speed"+ nitro);
@@ -240,7 +239,7 @@ public class Road extends Application {
             }
         };
         gameLoop.start();
-
+        
         primaryStage.setScene(scene);
         if (fullscreen) {
             primaryStage.setFullScreen(true);
@@ -668,8 +667,8 @@ public class Road extends Application {
         double dx = -(baseSegment.getCurve() * basePercent);
 
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        // ctx.setFill(Color.GREEN);
-        // ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.setFill(Color.web("#72D7EE"));
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
         render.background(ctx, background, WIDTH, HEIGHT, Background.SKY, skyOffset, resolution * skySpeed * playerY); // Was
                                                                                                                        // muss
@@ -1084,7 +1083,7 @@ public class Road extends Application {
         position = 1;
         playerX = 0;
         speed = 0;
-        MAX_SPEED = SEGMENT_LENGTH / (1.0 / FPS);
+        MAX_SPEED = SEGMENT_LENGTH / (1.0 / (FPS +5)) ;
         ACCEL = MAX_SPEED / 5;
         BREAKING = -MAX_SPEED;
         DECEL = -MAX_SPEED / 5;
@@ -1092,7 +1091,7 @@ public class Road extends Application {
         OFF_ROAD_DECEL = -MAX_SPEED / 2;
         currentLapTime = 0;
         lastLapTime = 0;
-        currentLap = 3;
+        currentLap = 0;
         nitrokey = false;
         nitro = 100;
         maxNitro = 100;
@@ -1172,7 +1171,7 @@ public class Road extends Application {
         // long timeNow = System.currentTimeMillis();
         // double deltaTime = Math.min(1, (timeNow - lastTime) / 1000.0);
         // globalDeltaTime += deltaTime;
-        // double step = 1.0 / FPS; 
+        // double step = 1.0 / FPS / 2; 
         // update(step);
         // render(ctx);
         // lastTime = timeNow;
@@ -1293,25 +1292,12 @@ public class Road extends Application {
         Road.hudScale = hudScale;
     }
 
-    public static double getWindowWidth() {
-        return WIDTH;
-    }
-
-    public static double getHudScale() {
-        return hudScale;
-    }
-
-    public static void setHudScale(double hudScale) {
-        Road.hudScale = hudScale;
-    }
-
     public Road(boolean isOfflineMode, String clientID, Map<String, String> clientIDs, boolean isHost, String username, Socket socket, int playerNum) {
         this.isOfflineMode = isOfflineMode;
         this.clientID = clientID;
         this.clientIDs = clientIDs;
         this.isHost = isHost;
         this.username = username;
-        this.socket = socket;
         this.socket = socket;
         //this.playerNum = playerNum;
         //System.out.println(isOfflineMode + " " + clientID + " " + clientIDs + " " + isHost + " " + username);
