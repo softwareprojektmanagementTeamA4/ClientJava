@@ -152,7 +152,17 @@ public class App extends Application {
         setStartButton();
         btnStart.setOnAction(event -> {
             if (canStart || clientdIDs.size() <= 1) {
-                road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                if(road == null){
+                    road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket);
+                } else {
+                    road.start(primaryStage);
+                    road.setOfflineMode(!isConnected);
+                    road.setClientID(clientID);
+                    road.setClientIDs(clientdIDs);
+                    road.setHost(isHost);
+                    road.setUsername(username);
+                    road.setSocket(socket);
+                }
                 road.start(primaryStage);
                 if(isConnected){
                     socket.emit("game_start");

@@ -132,6 +132,8 @@ public class Road extends Application {
     private Map<String, String> clientIDs;
     private Socket socket;
 
+    AnimationTimer gameLoop;
+
     private double deltaTime;
 
     @Override
@@ -178,6 +180,7 @@ public class Road extends Application {
                 switch (event.getCode()) {
                     case Q:
                         App.switchScene(primaryStage, App.getGameScene());
+                        gameLoop.stop();
                         break;
                 }
             }
@@ -211,13 +214,17 @@ public class Road extends Application {
 
         reset();
 
-        AnimationTimer gameLoop = new AnimationTimer() {
+        gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
 
                 frame(ctx);
                 endScreen(ctx);
                 updateHUD(ctx);
+
+                System.out.println("Speed"+ speed);
+                System.out.println("Speed"+ nitro);
+                System.out.println("Speed"+ maxNitro);
             }
         };
         gameLoop.start();
@@ -678,22 +685,12 @@ public class Road extends Application {
         addBumps();
         addCurve(RoadDefinition.Length.MEDIUM.getValue(), RoadDefinition.Curve.MEDIUM.getValue(),
                 RoadDefinition.Hill.LOW.getValue());
-        // addBumps();
-        // addLowRollingHills(null, null);
         addCurve(RoadDefinition.Length.LONG.getValue(), RoadDefinition.Curve.MEDIUM.getValue(),
                 RoadDefinition.Hill.MEDIUM.getValue());
-        // addStraight(null);
-        // addHill(RoadDefinition.Length.MEDIUM.getValue(),
-        // RoadDefinition.Hill.HIGH.getValue());
         addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(),
                 RoadDefinition.Hill.MEDIUM.getValue());
-        // addHill(RoadDefinition.Length.LONG.getValue(),
-        // RoadDefinition.Hill.HIGH.getValue());
         addCurve(RoadDefinition.Length.LONG.getValue(), -RoadDefinition.Curve.MEDIUM.getValue(),
                 RoadDefinition.Hill.LOW.getValue());
-        // addBumps();
-        // addHill(RoadDefinition.Length.LONG.getValue(),
-        // -RoadDefinition.Hill.MEDIUM.getValue());
         addStraight(null);
         addDownhillToEnd(null);
 
@@ -790,18 +787,39 @@ public class Road extends Application {
         currentLapTime = 0;
         lastLapTime = 0;
         currentLap = 3;
-        maxNitro = 100;
+        nitrokey = false;
         nitro = 100;
+        maxNitro = 100;
         nitroRecharge = false;
         nitroActive = false;
         place = 1;
         gameFinished = false;
+        keyFaster = false;
+        keyLeft = false;
+        keyRight = false;
+        keySlower = false;
 
 
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
-        resetRoad();
+
+        if(segments.size() == 0){
+            resetRoad();
+            resetSprites();
+            if(isHost){
+                //
+                resetCars();
+                if (!isOfflineMode) {
+                    // send reset to clients
+                }
+            } else {
+                if(!isOfflineMode){
+                    //
+                }
+            }
+        }
+
     }
 
     public void frame(GraphicsContext ctx) {
@@ -937,6 +955,30 @@ public class Road extends Application {
         this.username = username;
         this.socket = socket;
         System.out.println(isOfflineMode + " " + clientID + " " + clientIDs + " " + isHost + " " + username);
+    }
+
+    public void setClientIDs(Map<String, String> clientIDs) {
+        this.clientIDs = clientIDs;
+    }
+
+    public void setClientID(String clientID) {
+        this.clientID = clientID;
+    }
+
+    public void setHost(boolean isHost) {
+        this.isHost = isHost;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
+    public void setOfflineMode(boolean isOfflineMode) {
+        this.isOfflineMode = isOfflineMode;
     }
 
 }
