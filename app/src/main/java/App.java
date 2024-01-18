@@ -77,7 +77,7 @@ public class App extends Application {
     private static int selectedDrawDistance = 300;
     private static int selectedFieldOfView = 100;
     private static int selectedFogDensity = 5;
-    private static String selectedLanes = "1 Lane";
+    private static String selectedLanes = "3 Lanes";
     private static String selectedResolution = "High 1024x768";
     private static boolean isFullscreen = false;
     private boolean first_Build = false;
@@ -130,18 +130,30 @@ public class App extends Application {
         connectBox.getChildren().add(connectbtn);
         connectBox.getChildren().add(serverStatus);
 
-        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        Image backgroundImage = new Image("file:src/main/java/images/homescreen.jpg");
         ImageView backgroundImageView = new ImageView(backgroundImage);
 
         backgroundImageView.setFitWidth(SCREEN_WIDTH);
         backgroundImageView.setFitHeight(SCREEN_HEIGHT);
 
+        Image logoImage = new Image("file:src/main/java/images/gametitle.png");
+        ImageView logoImageView = new ImageView(logoImage);
+
+        logoImageView.setFitWidth(SCREEN_WIDTH);
+        logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
+        double logoYOffset = -(SCREEN_HEIGHT / 3);
+        logoImageView.setTranslateY(logoYOffset);
+        double logoXOffset = -(SCREEN_WIDTH / 15);
+        logoImageView.setTranslateX(-logoXOffset);
+
+
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
+        root.getChildren().add(logoImageView);
         root.getChildren().add(connectBox);
+        
 
         connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
-
     }
 
     private void createGameSzene(Stage primaryStage) {
@@ -233,15 +245,28 @@ public class App extends Application {
 
         buttonGameBox.getChildren().add(reconnectBox);
 
-        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        Image backgroundImage = new Image("file:src/main/java/images/homescreen.jpg");
         ImageView backgroundImageView = new ImageView(backgroundImage);
 
         backgroundImageView.setFitWidth(SCREEN_WIDTH);
         backgroundImageView.setFitHeight(SCREEN_HEIGHT);
 
+        Image logoImage = new Image("file:src/main/java/images/gametitle.png");
+        ImageView logoImageView = new ImageView(logoImage);
+
+        logoImageView.setFitWidth(SCREEN_WIDTH);
+        logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
+        double logoYOffset = -(SCREEN_HEIGHT / 3); // Halbe Höhe des Bildes nach oben verschieben
+        logoImageView.setTranslateY(logoYOffset);
+        double logoXOffset = -(SCREEN_WIDTH / 15); // Halbe Breite des Bildes nach links verschieben
+        logoImageView.setTranslateX(-logoXOffset);
+
+
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
-        root.getChildren().addAll(playersConnectedBox, buttonGameBox);
+        root.getChildren().add(logoImageView);
+        root.getChildren().add(buttonGameBox);
+        
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
@@ -333,7 +358,7 @@ public class App extends Application {
         // Lanes Dropdown-Menü
         ComboBox<String> lanesDropdown = new ComboBox<>();
         lanesDropdown.getItems().addAll("1 Lane", "2 Lanes", "3 Lanes", "4 Lanes");
-        lanesDropdown.setValue("1 Lane"); // Standardwert setzen
+        lanesDropdown.setValue("3 Lanes");
         lanesDropdown.setStyle("-fx-background-color: grey; -fx-font-size: 18px; -fx-scaley: 2.0; -fx-scalex: 2.0;");
         lanesDropdown.setMaxHeight(400);
 
@@ -461,16 +486,27 @@ public class App extends Application {
 
         settingsLayout.getChildren().addAll(topRightBox, lablesandSlider, saveConfirmationLayout);
 
-        Image backgroundImage = new Image("file:src/main/java/images/backgroundRepeatable.png");
+        Image backgroundImage = new Image("file:src/main/java/images/homescreen.jpg");
         ImageView backgroundImageView = new ImageView(backgroundImage);
 
         backgroundImageView.setFitWidth(SCREEN_WIDTH);
         backgroundImageView.setFitHeight(SCREEN_HEIGHT);
 
+        Image logoImage = new Image("file:src/main/java/images/gametitle.png");
+        ImageView logoImageView = new ImageView(logoImage);
+
+        logoImageView.setFitWidth(SCREEN_WIDTH);
+        logoImageView.setFitHeight(SCREEN_HEIGHT / 3);
+        double logoYOffset = -(SCREEN_HEIGHT / 3); // Halbe Höhe des Bildes nach oben verschieben
+        logoImageView.setTranslateY(logoYOffset);
+        double logoXOffset = -(SCREEN_WIDTH / 15); // Halbe Breite des Bildes nach links verschieben
+        logoImageView.setTranslateX(-logoXOffset);
+
+
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
+        root.getChildren().add(logoImageView);
         root.getChildren().add(settingsLayout);
-        
 
         settingsScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }

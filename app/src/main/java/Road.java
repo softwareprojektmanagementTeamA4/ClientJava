@@ -229,13 +229,7 @@ public class Road extends Application {
         gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
-
                 frame(ctx);
-
-
-                System.out.println("Speed"+ speed);
-                System.out.println("Speed"+ nitro);
-                System.out.println("Speed"+ maxNitro);
             }
         };
         gameLoop.start();
@@ -356,7 +350,6 @@ public class Road extends Application {
                             playerX = element.getDouble("offset");
                             position = element.getDouble("z");
                             playerNum = element.getInt("player_num");
-                            System.out.println("PlayerNum: "+playerNum);
                         }
                     }
                     catch (Exception e) {
@@ -1006,22 +999,35 @@ public class Road extends Application {
          */
 
         for (int n = 250; n < 1000; n += 50) {
+            double offset = Math.floorDiv(n, 50);
+            double value1 = n + (offset % 6);
+            double value2 = -1 - ((offset % 11) /5);
+
             addSprite(n, SPRITES.COLUMN, 1.1);
-            addSprite(n + util.randomInt(0, 5), SPRITES.TREE1, -1 - (Math.random() * 2));
-            addSprite(n + util.randomInt(0, 5), SPRITES.TREE2, -1 - (Math.random() * 2));
+            addSprite((int)(n + value1), SPRITES.TREE1, value2);
+            addSprite(n, SPRITES.TREE2, (n % 2 == 0) ? -1 : 1);
         }
 
         for (int n = 200; n < segments.size(); n += 30) {
-            addSprite(n, util.randomChoice(SPRITES.PLANTS), util.randomChoice(intList) * (2 + Math.random() * 5));
+            int key_index = n % SPRITES.PLANTS.size();
+            Sprite key = SPRITES.PLANTS.get(key_index);
+            double offset1 = ((Math.floorDiv(n, 30) % 2) * 2) -1;
+            double offset2 = 2 + (Math.floorDiv(n, 30)) % 5;
+            addSprite(n, key, offset1 * offset2);
         }
 
         for (int n = 1000; n < (segments.size() - 50); n += 500) {
-            double side = util.randomChoice(intList);
-            addSprite(n + util.randomInt(0, 50), util.randomChoice(SPRITES.BILLBOARDS), -side);
+            double side = ((Math.floorDiv(n, 500) % 2) *2 ) -1;
+            int key_index = n % SPRITES.BILLBOARDS.size();
+            Sprite key = SPRITES.BILLBOARDS.get(key_index);
+
+            addSprite(n + Math.floorDiv(n, 50) % 50,  key, -side * (1.5 + ((Math.floorDiv(n, 50) % 100) / 100)));
             for (int i = 0; i < 20; i++) {
-                Sprite sprite = util.randomChoice(SPRITES.PLANTS);
-                double offset = side * (1.5 + Math.random());
-                addSprite(n + util.randomInt(0, 50), sprite, offset);
+                key_index = (Math.floorDiv(n, 50) + i) % SPRITES.PLANTS.size();
+                key = SPRITES.PLANTS.get(key_index);
+                Sprite sprite = SPRITES.PLANTS.get(key_index);
+                double offset = side * (1.5 +(Math.floorDiv(n, 50 + i) % 100) / 100);
+                addSprite(n + Math.floorDiv(n, 50), sprite, offset);
             }
         }
 
@@ -1076,6 +1082,10 @@ public class Road extends Application {
     private void reset() {
         segments.clear();
         cars.clear();
+        npcCarsLock = new Object();
+        player_start_positions = new JSONArray();
+        playerCarsLock = new Object();
+        playerCars.clear();
         TRACK_LENGTH = 0;
         position = 1;
         playerX = 0;
@@ -1088,8 +1098,7 @@ public class Road extends Application {
         OFF_ROAD_DECEL = -MAX_SPEED / 2;
         currentLapTime = 0;
         lastLapTime = 0;
-        currentLap = 0;
-        nitrokey = false;
+        currentLap = 3;
         nitro = 100;
         maxNitro = 100;
         nitroRecharge = false;
@@ -1100,27 +1109,31 @@ public class Road extends Application {
         keyLeft = false;
         keyRight = false;
         keySlower = false;
+        finishedPlayers.clear();
+
 
 
         CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
         playerZ = (CAMERA_HEIGHT * CAMERA_DEPTH);
         resolution = HEIGHT / 480;
-        resetRoad();
-        resetSprites();
         
-        if (isHost) {
-            resetCars();
-            if (!isOfflineMode) {
-                reset_player_start_positions();
-                socket.emit("npc_car_data", cars);
+        if (segments.size() == 0) {
+            resetRoad();
+            resetSprites();
+
+            if(!isHost){
+                resetCars();
+                if (!isOfflineMode) {
+                    reset_player_start_positions();
+                    socket.emit("npc_car_data", cars);
+                }
             }
-        }
-        else {
-            if (!isOfflineMode) {
-                socket.emit("request_start_position"); 
+            else {
+                if (!isOfflineMode) {
+                    socket.emit("request_start_position"); 
+                }
             }
-        }
-        
+            }
     }
 
     public void frame(GraphicsContext ctx) {
@@ -1200,7 +1213,7 @@ public class Road extends Application {
                 finishedPlayers.add(username);
             }
             gameFinished = true;
-            speed = 0;
+            //speed = 0;
             double canvasWidth = WIDTH;
             double canvasHeight = HEIGHT;
 
@@ -1208,15 +1221,19 @@ public class Road extends Application {
             ctx.setFont(Font.font("Arial", FontWeight.BOLD, 60 * hudScale));
             ctx.fillText("RACE FINISHED", canvasWidth / 3.5, canvasHeight / 4);
 
+            ctx.setFill(Color.RED);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale));
+            ctx.fillText("Press Q to quit to the main menu", canvasWidth / 2.8, canvasHeight / 6);
+
             ctx.setFill(Color.WHITE);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Beispiel für die Schriftgröße und
-                                                                             // Schriftart
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); 
+                                                                             
             for (int i = 0; i < finishedPlayers.size(); i++) {
                 String playerLabel = (i + 1) + "# " + finishedPlayers.get(i);
 
                 Text text = new Text(playerLabel);
-                text.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); // Schriftgröße und Schriftart
-                                                                                  // festlegen
+                text.setFont(Font.font("Arial", FontWeight.BOLD, 20 * hudScale)); 
+                                                                                  
                 double textWidth = text.getBoundsInLocal().getWidth();
                 double textHeight = text.getBoundsInLocal().getHeight();
 
@@ -1272,8 +1289,8 @@ public class Road extends Application {
 
         if (App.getOfflineMode()) {
             ctx.setFill(Color.RED);
-            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 24 * hudScale));
-            ctx.fillText(place + ".", 0, 95 * hudScale);
+            ctx.setFont(Font.font("Arial", FontWeight.BOLD, 40 * hudScale));
+            ctx.fillText(place + ".", 0, 130 * hudScale);
         }
     }
 

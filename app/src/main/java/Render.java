@@ -88,10 +88,7 @@ public class Render {
             
             for (lane = 1; lane < lanes; lane++) {
                 lanex1 += lanew1;
-                lanex2 += lanew2;
-                
-                System.out.println("lanex1: " + lanex1 + ", lanex2: " + lanex2);
-                
+                lanex2 += lanew2;           
                 polygon(ctx, lanex1 - l1 / 2, y1, lanex1 + l1 / 2, y1, lanex2 + l2 / 2, y2, lanex2 - l2 / 2, y2, Colors.LANE_LIGHT);
             }
         }
