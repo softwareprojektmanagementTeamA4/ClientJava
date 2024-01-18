@@ -92,7 +92,11 @@ public class App extends Application {
     private boolean gameStart2 = false;
 
     private Road road;
-
+    /**
+     * Startet die Anwendung und initialisiert die verschiedenen Szenen.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung.
+     */
     @Override
     public void start(Stage primaryStage) {
 
@@ -105,6 +109,14 @@ public class App extends Application {
 
     }
 
+    /**
+     * Erstellt die Verbindungsszene (Connect Scene) für die Anwendung.
+     * - Die Methode erstellt UI-Elemente wie Label, Textfelder und Buttons für die Verbindungsszene.
+     * - Setzt ein Hintergrundbild und ein Logo für die Verbindungsszene.
+     * - Die Methode definiert Aktionen für den "Verbindung herstellen"-Button.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     */
     private void createConnectSzene(Stage primaryStage) {
         serverStatus = new Label();
         serverStatus.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -156,6 +168,14 @@ public class App extends Application {
         connectScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Erstellt die Spielszene (Game Scene) für die Anwendung.
+     * - Die Methode erstellt UI-Elemente wie Label, Buttons und Slider für die Spielszene.
+     * - Setzt ein Hintergrundbild und ein Logo für die Spielszene.
+     * - Die Methode definiert Aktionen für die Buttons und den "Reconnect"-Button.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     */
     private void createGameSzene(Stage primaryStage) {
         connectedUsersLabel = new Label();
         connectedUsersLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -272,6 +292,14 @@ public class App extends Application {
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Erstellt die Einstellungsszene (Settings Scene) für die Anwendung.
+     * - Die Methode erstellt UI-Elemente wie Label, Slider, Dropdown-Menüs und Buttons für die Einstellungsszene.
+     * - Setzt ein Hintergrundbild und ein Logo für die Einstellungsszene.
+     * - Die Methode definiert Aktionen für die Dropdown-Menüs, den "Fullscreen"-CheckBox und den "Save"-Button.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung, auf der die Szene angezeigt wird.
+     */
     private void createSettingsScene(Stage primaryStage) {
 
         Label saveConfirmationLabel = new Label("");
@@ -511,6 +539,11 @@ public class App extends Application {
         settingsScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
+    /**
+     * Stellt eine Verbindung zum Server her und registriert Event-Handler für verschiedene Ereignisse.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung.
+     */
     private void establishConnection(Stage primaryStage) {
         try {
             IO.Options options = IO.Options.builder()
@@ -615,6 +648,12 @@ public class App extends Application {
 
     }
 
+    /**
+     * Verarbeitet Ereignisse, wenn Spieler mit dem Server verbunden sind, und aktualisiert die Benutzeroberfläche entsprechend.
+     *
+     * @param args Die Argumente des Ereignisses, die die Informationen über die verbundenen Spieler enthalten.
+     * @throws JSONException Falls es zu einem Fehler bei der JSON-Verarbeitung kommt.
+     */
     private void onPlayersConnected(Object... args) throws JSONException {
         if (args.length > 0 && args[0] instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) args[0];
@@ -655,6 +694,11 @@ public class App extends Application {
         }
     }
 
+    /**
+     * Setzt den Host anhand der empfangenen Serverinformationen und aktualisiert den Startbutton entsprechend.
+     *
+     * @param args Die Argumente des Ereignisses, die die Hostinformationen enthalten.
+     */
     public void createHost(Object... args) {
         hostID = args[0].toString();
         if (clientID.equals(hostID)) {
@@ -663,15 +707,31 @@ public class App extends Application {
         setStartButton();
     }
 
+    /**
+     * Setzt die Spieler-ID basierend auf den empfangenen Serverinformationen.
+     *
+     * @param args Die Argumente des Ereignisses, die die Spieler-ID enthalten.
+     */
     public void getPlayerID(Object... args) {
         clientID = args[0].toString();
     }
 
+     /**
+     * Setzt den Zustand, ob das Spiel gestartet werden kann, basierend auf den empfangenen Serverinformationen.
+     *
+     * @param args Die Argumente des Ereignisses, die den Startstatus des Spiels enthalten.
+     */
     public void setCanStart(Object... args) {
         canStart = args[0].toString().equals("true");
         setStartButton();
     }
 
+    /**
+     * Setzt den Zustand des Spiels, wenn es gestartet wird, und initialisiert die Spielszene.
+     *
+     * @param primaryStage Die Hauptbühne der Anwendung.
+     * @param args         Die Argumente des Ereignisses, die den Startstatus des Spiels enthalten.
+     */
     public void setGameStart(Stage primaryStage, Object... args) {
         gameStart = true;
         if (gameStart && !gameStart2) {
@@ -692,7 +752,13 @@ public class App extends Application {
 
         switchScene(primaryStage, gameScene);
     }
-
+    
+    /**
+     * Setzt den Zustand und das Aussehen des Startbuttons basierend auf verschiedenen Bedingungen.
+     * - Wenn nicht verbunden oder Host, wird der Button rot mit der Aufschrift "Start" oder "Not Ready" (je nach Spielerbereitschaft).
+     * - Wenn das Spiel gestartet werden kann oder es nur einen Spieler gibt, wird der Button grün.
+     * - Wenn der Spieler bereit ist, wird der Button grün mit der Aufschrift "Ready".
+     */
     private void setStartButton() {
         if (!isConnected || isHost) {
             System.out.println("Host");
@@ -715,6 +781,16 @@ public class App extends Application {
         }
     }
 
+    /**
+     * Wechselt die Szene auf der Plattform-JavaFX-Laufzeit.
+     * - Die Methode wird auf dem JavaFX Application Thread ausgeführt, um sicherzustellen,
+     *   dass die Änderungen an der Szene auf dem richtigen Thread vorgenommen werden.
+     * - Die Methode aktualisiert die Szene des übergebenen Stages mit der neuen Szene und zeigt den Stage an.
+     * - Gibt "Szene gewechselt" auf der Konsole aus, um den erfolgreichen Szenenwechsel anzuzeigen.
+     *
+     * @param stage Der Stage, dessen Szene geändert werden soll.
+     * @param scene Die neue Szene, die auf der Stage angezeigt werden soll.
+     */
     public static void switchScene(Stage stage, Scene scene) {
         Platform.runLater(() -> {
             stage.setScene(scene);
