@@ -166,6 +166,10 @@ public class App extends Application {
             if (canStart || clientdIDs.size() <= 1) {
                 if(road == null){
                     road = new Road(!isConnected, clientID, clientdIDs, isHost, username, socket,1);
+                    gameStart = false;
+                    canStart = false;
+                    playerReady = false;
+                    socket.emit("player_ready", playerReady);
                 } else {
                     road.start(primaryStage);
                     road.setOfflineMode(!isConnected);
@@ -176,9 +180,9 @@ public class App extends Application {
                     road.setSocket(socket);
                 }
                 road.start(primaryStage);
-                if(isConnected){
-                    socket.emit("game_start");
-                }
+                //if(isConnected){
+                //    socket.emit("game_start");
+                //}
             } else if (!playerReady && !isHost) {
                 playerReady = true;
                 socket.emit("player_ready", playerReady);
