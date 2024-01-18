@@ -114,6 +114,14 @@ public class Sprites {
             CAR01, CAR02, CAR03, CAR04, TRUCK, SEMI
     };
 
+    /**
+     * Returns the name of the sprite based on the x, y, w, h Coordinates
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @return
+     */
     public static String getSpriteName(double x, double y, double w, double h) {
         for (int i = 0; i < allCarSprites.length; i++) {
             Sprite s = allCarSprites[i];

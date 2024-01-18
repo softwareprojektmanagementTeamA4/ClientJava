@@ -12,6 +12,14 @@ import java.util.List;
 //TODO: project(World, Scale) 
 
 public class Util {
+
+    /**
+     * Returns a random value
+     * @param start
+     * @param increment
+     * @param max
+     * @return new random value between 0 and max
+     */
     private static final Random random = new Random();
     public static double increase(double start, double increment, double max) {
         double result = start + increment;
@@ -43,6 +51,17 @@ public class Util {
         return 1 / Math.pow(Math.E, (distance * distance * density));
     }
 
+    /**
+     * For pint projection on the screen
+     * @param p
+     * @param cameraX
+     * @param cameraY
+     * @param cameraZ
+     * @param cameraDepth
+     * @param width
+     * @param height
+     * @param roadWidth
+     */
     public void project(
         Point3D_2 p, 
         double cameraX, 
@@ -106,7 +125,15 @@ public class Util {
         return (a + (b - a) * (1 - Math.pow(1 - percent, 2)));
     }
 
-
+    /**
+     * Checks if two objects overlap
+     * @param x1
+     * @param w1
+     * @param x2
+     * @param w2
+     * @param percent
+     * @return true if the objects overlap
+     */
     public static boolean overlap(double x1, double w1, double x2, double w2, double percent) {
         double half = (percent != 0) ? percent / 2 : 0.5;
         double min1 = x1 - (w1 * half);

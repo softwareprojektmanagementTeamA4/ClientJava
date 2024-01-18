@@ -1,6 +1,9 @@
 import javafx.scene.paint.Color;
 
 public class Colors {
+    /**
+     * Saves all the colors used in the game
+     */
     static final Color SKY = Color.web("#72D7EE");
     static final Color TREE = Color.web("#005108");
     static final Color FOG = Color.web("#005108");
