@@ -30,6 +30,7 @@ dependencies {
         exclude group: 'org.json', module: 'json'
     }
     implementation 'org.json:json:20090211'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
   }
 
 java {

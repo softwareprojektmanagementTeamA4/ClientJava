@@ -1,32 +1,76 @@
 import javafx.scene.paint.Color;
 
 public class Colors {
-    public static final Color SKY = Color.rgb(114, 215, 238);
-    public static final Color TREE = Color.rgb(0, 81, 8);
-    public static final Color FOG = Color.rgb(0, 81, 8);
-    
-    public static class Light {
-        public static final Color ROAD = Color.rgb(107, 107, 107);
-        public static final Color GRASS = Color.rgb(16, 170, 16);
-        public static final Color RUMBLE = Color.rgb(85, 85, 85);
-        public static final Color LANE = Color.rgb(204, 204, 204);
+    /**
+     * Saves all the colors used in the game
+     */
+    static final Color SKY = Color.web("#72D7EE");
+    static final Color TREE = Color.web("#005108");
+    static final Color FOG = Color.web("#005108");
+
+    static final Color ROAD_LIGHT = Color.web("#6B6B6B");
+    static final Color GRASS_LIGHT = Color.web("#10AA10");
+    static final Color RUMBLE_LIGHT = Color.web("#555555");
+    static final Color LANE_LIGHT = Color.web("#CCCCCC");
+
+    private static final Color ROAD_DARK = Color.web("#6B6B6B");
+    static final Color GRASS_DARK = Color.web("#009A00");
+    static final Color RUMBLE_DARK = Color.web("#BBBBBB");
+
+    static final Color ROAD_START = Color.web("#FFFFFF");
+    static final Color GRASS_START = Color.web("#FFFFFF");
+    static final Color RUMBLE_START = Color.web("#FFFFFF");
+
+    static final Color ROAD_FINISH = Color.web("#000000");
+    static final Color GRASS_FINISH = Color.web("#000000");
+    static final Color RUMBLE_FINISH = Color.web("#000000");
+
+    public static Color getRumbleColor(int segmentIndex, int rumbleLength) {
+        if ((segmentIndex / rumbleLength) % 2 == 0) {
+            return RUMBLE_LIGHT;
+        } else {
+            return RUMBLE_DARK;
+        }
     }
-    
-    public static class Dark {
-        public static final Color ROAD = Color.rgb(107, 107, 107);
-        public static final Color GRASS = Color.rgb(0, 154, 0);
-        public static final Color RUMBLE = Color.rgb(187, 187, 187);
+
+    public static Color getRoadColorLight() {
+        return ROAD_LIGHT;
     }
-    
-    public static class Start {
-        public static final Color ROAD = Color.WHITE;
-        public static final Color GRASS = Color.WHITE;
-        public static final Color RUMBLE = Color.WHITE;
+
+    public static Color getRoadColorDark() {
+        return ROAD_DARK;
     }
-    
-    public static class Finish {
-        public static final Color ROAD = Color.BLACK;
-        public static final Color GRASS = Color.BLACK;
-        public static final Color RUMBLE = Color.BLACK;
+
+    public static Color getGrassColorLight() {
+        return GRASS_LIGHT;
     }
+
+    public static Color getGrassColorDark() {
+        return GRASS_DARK;
+    }
+
+    public static Color getGrassColor(int segmentIndex, int rumbleLength) {
+        if ((segmentIndex / rumbleLength) % 2 == 0) {
+            return GRASS_LIGHT;
+        } else {
+            return GRASS_DARK;
+        }
+    }
+
+    public static Color getRumbleColorDark() {
+        return RUMBLE_DARK;
+    }
+
+    public static Color getRoadStart() {
+        return ROAD_START;
+    }
+    public static Color getRoadFinish() {
+        return ROAD_FINISH;
+    }
+
+    public static Color getFogColor() {
+        return FOG;
+    }
+
+
 }
