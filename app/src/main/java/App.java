@@ -269,7 +269,7 @@ public class App extends Application {
         StackPane root = new StackPane();
         root.getChildren().add(backgroundImageView);
         root.getChildren().add(logoImageView);
-        root.getChildren().add(buttonGameBox);
+        root.getChildren().addAll(playersConnectedBox, buttonGameBox);
         
 
         gameScene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
