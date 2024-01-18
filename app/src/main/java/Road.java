@@ -63,14 +63,14 @@ public class Road extends Application {
     private double OFF_ROAD_LIMIT = MAX_SPEED / 4;
     private double TRACK_LENGTH;
     private double CAMERA_DEPTH;
-    private double resolution; // scaling factor to provide resolution independence (computed)
-    private double centrifugal_force = 0.3;        // centrifugal force multiplier when going around curves
-    private double skySpeed = 0.001;                  // background sky layer scroll speed when going around curve (or up hill)
-    private double hillSpeed = 0.002;                 // background hill layer scroll speed when going around curve (or up hill)
-    private double treeSpeed = 0.003;                 // background tree layer scroll speed when going around curve (or up hill)
-    private double skyOffset = 0;                       // current sky scroll offset
-    private double hillOffset = 0;                       // current hill scroll offset
-    private double treeOffset = 0;                       // current tree scroll offset
+    private double resolution; 
+    private double centrifugal_force = 0.3; 
+    private double skySpeed = 0.001;  
+    private double hillSpeed = 0.002;        
+    private double treeSpeed = 0.003;              
+    private double skyOffset = 0;                    
+    private double hillOffset = 0;                     
+    private double treeOffset = 0;                       
     private int totalCars = 100;   
     private double currentLapTime = 0;
     private double lastLapTime = 0;
@@ -247,7 +247,6 @@ public class Road extends Application {
                     String key = (String)data.keys().next();
                     Car car = null;
                     try {
-                        // Deserialize the car data
                         data = data.getJSONObject(key);
                         ObjectMapper objectMapper = new ObjectMapper();
                         car = objectMapper.readValue(data.toString(), Car.class);
@@ -309,7 +308,6 @@ public class Road extends Application {
                             JSONArray sprite = (JSONArray) element.get("sprite");
                             JSONObject source = (JSONObject) sprite.get(1);
                             Sprite carSprite = new Sprite(((Integer)source.get("x")).doubleValue(), ((Integer) source.get("y")).doubleValue(), ((Integer) source.get("w")).doubleValue(), ((Integer) source.get("h")).doubleValue());
-                            // Sprite sprite = new Sprite();
                             Car car = new Car(element.getDouble("offset"), element.getDouble("z"), carSprite, element.getDouble("speed"));
                             cars.add(car);
                             putCarsIntoSegments();
@@ -432,8 +430,7 @@ public class Road extends Application {
         Segment playerSegment = findSegment(position + playerZ);
         double playerW = SPRITES.PLAYER_STRAIGHT.getW() * SPRITES.SCALE;
         double speedPercent = speed / MAX_SPEED;
-        double dx = delta_time * 2 * speedPercent; // at top speed, should be able to cross from left to right (-1 to 1)
-                                                   // in 1 second
+        double dx = delta_time * 2 * speedPercent; 
         double startPosition = position;
 
         if (isHost) updateCars(delta_time, playerSegment, playerW);
@@ -452,8 +449,7 @@ public class Road extends Application {
         else if (keyRight)
             playerX = playerX + dx;
 
-        playerX = playerX - (dx * speedPercent * playerSegment.getCurve() * centrifugal_force); // centrifugal force
-                                                                                                // multiplier
+        playerX = playerX - (dx * speedPercent * playerSegment.getCurve() * centrifugal_force); 
 
         if (keyFaster)
             speed = util.accelerate(speed, ACCEL, delta_time);
@@ -529,8 +525,8 @@ public class Road extends Application {
 
 
             
-        playerX = util.limit(playerX, -2, 2);         // dont ever let it go too far out of bounds
-        speed = util.limit(speed, 0, MAX_SPEED);      // or exceed maxSpeed
+        playerX = util.limit(playerX, -2, 2); 
+        speed = util.limit(speed, 0, MAX_SPEED);
 
         if (!isOfflineMode) {
             send_data();
@@ -542,7 +538,6 @@ public class Road extends Application {
                 currentLapTime = 0;
                 currentLap += 1;
             } else {
-                // currentLapTime += globalDeltaTime;
                 currentLapTime += delta_time;
             }
         }
@@ -559,8 +554,7 @@ public class Road extends Application {
             oldSegment = findSegment(car.getZ());
             car.setOffset(car.getOffset() + updateCarOffset(car, oldSegment, playerSegment, playerW));
             car.setZ(util.increase(car.getZ(), dt * car.getSpeed(), TRACK_LENGTH));
-            car.setPercent(util.percentRemaining(car.getZ(), SEGMENT_LENGTH)); // useful for interpolation during
-                                                                               // rendering phase
+            car.setPercent(util.percentRemaining(car.getZ(), SEGMENT_LENGTH)); 
             newSegment = findSegment(car.getZ());
             if (oldSegment != newSegment) {
                 int index = oldSegment.getCars().indexOf(car);
@@ -756,7 +750,7 @@ public class Road extends Application {
                                             break;
                                     }
                                 }
-                                // Sprite X and Y using interpolate
+
                                 double otherSpriteScale = util.interpolate(otherCarSegment.getP1().getScreen().getScale(), otherCarSegment.getP2().getScreen().getScale(), otherCarPercent);
                                 double otherCarSpriteX = util.interpolate(otherCarSegment.getP1().getScreen().getX(), otherCarSegment.getP2().getScreen().getX(), otherCarPercent) + (otherSpriteScale * otherCar.getOffset() * ROAD_WIDTH * WIDTH / 2);
                                 double otherCarSpriteY = util.interpolate(otherCarSegment.getP1().getScreen().getY(), otherCarSegment.getP2().getScreen().getY(), otherCarPercent);
@@ -1008,7 +1002,6 @@ public class Road extends Application {
     }
 
     public JSONArray reset_player_start_positions() {
-        // Clear the player start positions
         player_start_positions = new JSONArray();
         Double offset = -0.6;
         int player_num = 1;
